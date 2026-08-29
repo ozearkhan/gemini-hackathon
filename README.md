@@ -24,9 +24,7 @@ flowchart TB
     A -->|grounds facts| L[(decide_load_pattern)]
 ```
 
-- Full GCP/ADK design + the LangGraph→ADK migration map: **[docs/architecture.md](docs/architecture.md)**
-- The domain process it automates: **[docs/pdlc-playbook.md](docs/pdlc-playbook.md)**
-- Deploy + registration runbook: **[docs/deployment.md](docs/deployment.md)**
+
 
 ## 3. Tech Stack & Dependencies
 
@@ -58,14 +56,13 @@ python -m pytest                        # deterministic tool tests (fast, offlin
 source .env && ./deploy.sh local        # ADK dev UI at http://localhost:8000 (needs GCP auth)
 ```
 
-> **Dev/run split:** this workstation is authoring-only (cannot auth to GCP). All GCP commands run on a remote with `gcloud` auth — edit here → `git push` → pull & run on remote. See **[.github/copilot-instructions.md](.github/copilot-instructions.md)**.
 
 ## 6. Deployment & CI/CD
 
 Full runbook (first-time bootstrap → connectivity → IAM → deploy → registration): **[docs/deployment.md](docs/deployment.md)**.
 
 ```bash
-source .env && ./deploy.sh cloud_run    # Cloud Run + A2A, org-policy-compliant (--no-allow-unauthenticated)
+source .env && ./deploy.sh cloud_run    # Cloud Run + A2A, epam-policy-compliant (--no-allow-unauthenticated)
 ```
 
 The script deploys the container, then grants the Layer-1 Gemini Enterprise Discovery Engine SA `roles/run.invoker`. Registering the A2A endpoint into the shared Gemini Enterprise app is **team-gated** (Layer 1) — raise a support ticket with the deployed `pdlc_agent/agent.json` + service URL.
