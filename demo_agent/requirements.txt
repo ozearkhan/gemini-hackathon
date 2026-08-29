@@ -1,0 +1,18 @@
+# Agent package dependencies
+# ─────────────────────────────────────────────────────────────────────────────
+# ⚠️  This requirements.txt MUST be inside the agent package folder (demo_agent/),
+# NOT in the parent folder. ADK copies this folder into the container and
+# installs these deps during the Docker build.
+#
+# Deployment targets:
+#   Cloud Run:      adk deploy cloud_run demo_agent --a2a ...
+#   Agent Engine:   adk deploy agent_engine demo_agent ...
+
+# Core ADK with A2A protocol support
+google-adk[a2a]
+
+# Required by ADK A2A executor at runtime
+sse-starlette
+
+# Add your own dependencies below:
+# e.g. google-cloud-bigquery, requests, pysnow, etc.
