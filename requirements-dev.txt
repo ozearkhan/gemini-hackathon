@@ -1,0 +1,5 @@
+# Dev-only dependencies (tests, linting). Installed in the local .venv and on
+# the remote for running the test suite. NOT part of the deployed agent image —
+# runtime deps live in demo_agent/requirements.txt (ADK packaging rule).
+pytest
+pytest-asyncio
