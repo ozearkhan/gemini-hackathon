@@ -63,3 +63,22 @@ Skill routing — match the task to the skill folder under `.github/skills/`:
 
 Keep these current as the build progresses: `README.md` (developer landing page),
 `docs/architecture.md` (+ diagram), `docs/deployment.md`. Link them from the README.
+
+## RULE 5 — EPAM sandbox guardrails (hard constraints from the hackathon KB)
+
+- **Cloud Run: always `--no-allow-unauthenticated`.** Org policy rejects
+  `--allow-unauthenticated`. Grant `roles/run.invoker` (+ `roles/aiplatform.user`
+  for Agent Runtime) to the Layer 1 Discovery Engine SA
+  `service-71784361107@gcp-sa-discoveryengine.iam.gserviceaccount.com`.
+- **$100 hard cap per project** (auto-stop at 100%; alerts 50/75/90%). Use
+  backoff, caching, prompt compression; never bypass billing controls.
+- **No external non-GCP services / paid APIs / unvetted SaaS without Platform
+  Architect sign-off.** Prefer GCP-native (Vertex AI, Google Developer Knowledge
+  MCP, BigQuery). Context7 / Atlassian / GitHub MCP are NOT default-approved →
+  grounding uses Dev-Knowledge MCP + Vertex AI; ticket/doc trees are emitted as
+  repo artifacts, not pushed to external SaaS.
+- **No live client / PII / confidential data.** Synthetic + public data only.
+- **No GKE / GPU / large persistent compute.** Cloud Run + Agent Runtime only.
+- **Never modify Layer 1.** Binding/registration is via support ticket only.
+- **Submission repo = EPAM GitLab** (`git.garage.epam.com/[team-slug]`). GitHub
+  `origin` is our dev sync; mirror to GitLab for the final submission.
