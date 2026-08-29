@@ -8,6 +8,36 @@
 
 ---
 
+## Step 0a — First-time remote bootstrap (install the toolchain)
+
+Run **once** on a fresh remote. Unlike this authoring workstation (where we bypassed installs), the remote has full permissions and installs everything directly.
+
+```bash
+# 1. Google Cloud SDK — required for gcloud + adk deploy. Verify (install if missing):
+gcloud --version          # missing? https://cloud.google.com/sdk/docs/install
+
+# 2. Python 3.11+ (ADK and agents-cli require it)
+python3 --version
+
+# 3. uv — fast Python tool runner (no admin needed)
+curl -LsSf https://astral.sh/uv/install.sh | sh    # or: pip install --user uv
+uv --version
+
+# 4. agents-cli — our golden path (scaffold/eval/deploy/publish). Installed globally via uv:
+uv tool install google-agents-cli
+agents-cli --version
+
+# 5. Authenticate to GCP (human login + Application Default Credentials for SDKs)
+gcloud auth login
+gcloud auth application-default login
+```
+
+> **Node.js is NOT required** for `agents-cli deploy/eval/publish`. It's only needed by `agents-cli setup` (which wires skills into a coding agent) — and our skills are already vendored in `.github/skills/`, so the remote never needs Node.
+>
+> **What uses what:** our **deploy** path is `./deploy.sh` (wraps `adk deploy`, from `google-adk` in the venv). `agents-cli` powers **eval** (Slice 6) and is the declared golden path — installing it now means it's ready when we wire evals.
+
+---
+
 ## Step 0 — Connectivity smoke test (do this first)
 
 Confirm we can reach the sandbox *before* building anything else. Run on the remote and paste the output back.
