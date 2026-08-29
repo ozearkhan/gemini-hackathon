@@ -105,9 +105,17 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:$LAYER1_DE_SA" \
   --role="roles/run.invoker" --condition=None
 
-# Cloud Build image pushes
+# Cloud Build image pushes — grant the SAME KB role (artifactregistry.writer) to
+# BOTH candidate build service accounts. `gcloud run deploy --source` (what
+# `adk deploy` wraps) runs the build as the COMPUTE default SA on new projects,
+# not the @cloudbuild SA the KB assumes — so without this the push fails with:
+# denied: Permission 'artifactregistry.repositories.uploadArtifacts'.
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+  --role="roles/artifactregistry.writer" --condition=None
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
   --role="roles/artifactregistry.writer" --condition=None
 ```
 
