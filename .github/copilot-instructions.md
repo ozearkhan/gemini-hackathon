@@ -20,15 +20,32 @@ This workstation **cannot authenticate to GCP**. It is an **authoring-only** mac
 - When a task needs a cloud command, **do not run it** — output the exact command(s) for the
   user to run on the remote, then wait for the output.
 
-## RULE 2 — Use agents-cli skills; never ship bad code
+## RULE 2 — Skills-first: use agents-cli + google/skills for EVERYTHING (MANDATORY)
 
-We lack deep GCP exposure, so we lean on Google's skills to stay on the golden path.
+We lack deep GCP exposure. The vendored Google skills in `.github/skills/` carry the
+correct, current GCP + ADK context — using them is how we avoid deploy and
+Gemini-Enterprise registration failures later. **agents-cli is our golden path and
+is always active.**
 
-- Follow the **agents-cli** skills for all ADK work: `workflow` (lifecycle + code-preservation),
-  `adk-code` (agent/tool/orchestration API), `scaffold`, `eval`, `deploy`, `publish`,
-  `observability`. Prefer their patterns over improvised code.
-- Follow selected **google/skills** for GCP foundations (auth, Cloud Run, Secret Manager,
-  IAM, Well-Architected security). See `docs/skills.md` for the picked list.
+**Before implementing ANYTHING** — agent/tool code, an eval, a deploy step, an
+IAM/security choice, a `gcloud` command — FIRST open the best-matching skill in
+`.github/skills/` and follow it. Do not improvise when a skill covers the task.
+
+Skill routing — match the task to the skill folder under `.github/skills/`:
+
+| Task | Skill |
+|---|---|
+| ADK agent / tool / orchestration code | `google-agents-cli-adk-code`, `google-agents-cli-workflow` |
+| New project / scaffolding | `google-agents-cli-scaffold` |
+| Evals & test methodology | `google-agents-cli-eval`, `agent-platform-eval-flywheel` |
+| Deploy (Cloud Run / Agent Engine) | `google-agents-cli-deploy`, `cloud-run-basics`, `google-cloud-solution-build-deploy-agents` |
+| Register agent in Gemini Enterprise | `google-agents-cli-publish` |
+| Authenticate to GCP | `google-cloud-recipe-auth` |
+| `gcloud` CLI usage | `gcloud` |
+| Security / least-privilege / guardrails | `google-cloud-waf-security` |
+| Logging / tracing / observability | `google-agents-cli-observability` |
+
+- On the remote, invoke the toolchain directly: `uvx google-agents-cli <cmd>`.
 - **Test-Driven:** write the eval/test that defines "done" BEFORE implementing. Red → green → refine.
 - **Code preservation:** do not delete or rewrite working code without cause. Surgical changes only.
 
