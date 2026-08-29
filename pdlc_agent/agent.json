@@ -1,0 +1,32 @@
+{
+  "name": "Agentic PDLC Assistant",
+  "description": "Automates the data-engineering Project Development Lifecycle (PDLC): turns a data request into lifecycle artifacts (triage, requirement analysis, HLD/ADR, JIRA breakdown) via a coordinator that routes to phase specialists, grounded in deterministic decision tools.",
+  "url": "https://agenti-1711-pdlc-gtlpbazura-uc.a.run.app/a2a/pdlc_agent",
+  "provider": {
+    "organization": "EPAM Systems",
+    "url": "https://epam.com"
+  },
+  "version": "1.0.0",
+  "protocolVersion": "1.0",
+  "documentationUrl": "https://adk.dev",
+  "capabilities": {
+    "streaming": true
+  },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [
+    {
+      "id": "architecture_hld",
+      "name": "Architecture & HLD Decisions",
+      "description": "Produces High-Level Design decisions and Architecture Decision Records for data pipelines — especially the load pattern and storage format for a source — grounded in a deterministic decision tree.",
+      "tags": ["data-engineering", "architecture", "adr", "pdlc", "gemini-enterprise"],
+      "examples": [
+        "How should I load a daily stock-price feed for 10 competitor tickers?",
+        "Full, incremental, or append-only for an immutable fact with restatement risk?",
+        "Parquet or Delta for a fact table that gets corporate-action restatements?"
+      ],
+      "inputModes": ["text/plain"],
+      "outputModes": ["text/plain"]
+    }
+  ]
+}

@@ -208,7 +208,7 @@ Keep both human gates strict initially; loosen only after traces show trustworth
 ## 10. Repo layout (target)
 
 ```
-demo_agent/                     # ADK package (kept for deploy.sh / agent.json compatibility)
+pdlc_agent/                     # ADK package (kept for deploy.sh / agent.json compatibility)
 ├── agent.py                    # root_agent = PDLC Coordinator  ✅
 ├── config.py                   # env-driven models + limits      ✅
 ├── callbacks.py                # tool-call ceiling; doc-gate guard ✅/⏭️

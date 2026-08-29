@@ -126,7 +126,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 ```bash
 git pull origin master
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements-dev.txt -r demo_agent/requirements.txt
+pip install -r requirements-dev.txt -r pdlc_agent/requirements.txt
 python -m pytest                      # deterministic tool tests — expect all green
 
 cp .env.example .env                  # set GOOGLE_CLOUD_PROJECT=[PROJECT_ID]
@@ -143,10 +143,10 @@ Pick one target. Both are org-policy compliant (`--no-allow-unauthenticated`).
 ```bash
 source .env && ./deploy.sh cloud_run
 ```
-The script deploys with `--no-allow-unauthenticated` and grants the Layer 1 DE SA `roles/run.invoker`. Copy the printed **A2A endpoint** `https://[service-url]/a2a/demo_agent`. Verify:
+The script deploys with `--no-allow-unauthenticated` and grants the Layer 1 DE SA `roles/run.invoker`. Copy the printed **A2A endpoint** `https://[service-url]/a2a/pdlc_agent`. Verify:
 ```bash
 curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
-  https://[service-url]/a2a/demo_agent -X POST -H "Content-Type: application/json" \
+  https://[service-url]/a2a/pdlc_agent -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":"1","method":"message/send","params":{"message":{"messageId":"m1","role":"user","parts":[{"kind":"text","text":"Hello"}]}}}'
 ```
 
@@ -168,8 +168,8 @@ We cannot self-register. Post to the **MS Teams "Gemini Enterprise Hackathon Sup
 Team Slug: [team-slug]
 Sandbox Project ID: [PROJECT_ID]
 Sandbox Project Number: [PROJECT_NUMBER]
-A2A Endpoint URL: https://[service-url]/a2a/demo_agent
-Validated agent.json Content: { ... from demo_agent/agent.json ... }
+A2A Endpoint URL: https://[service-url]/a2a/pdlc_agent
+Validated agent.json Content: { ... from pdlc_agent/agent.json ... }
 ```
 
 **Agent Runtime:**

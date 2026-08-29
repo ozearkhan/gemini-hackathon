@@ -18,7 +18,7 @@ env/
 
 # ADK temp folders created during deploy
 *_tmp*/
-demo_agent_tmp*/
+pdlc_agent_tmp*/
 
 # Temp clone dir used to vendor Google skills (not committed)
 _vendor/

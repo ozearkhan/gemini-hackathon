@@ -5,7 +5,7 @@ The rules under test come directly from the playbook, so the expected values are
 the "definition of done" for `decide_load_pattern`.
 """
 
-from demo_agent.tools.load_pattern import decide_load_pattern
+from pdlc_agent.tools.load_pattern import decide_load_pattern
 
 
 def test_immutable_fact_with_restatement_risk_is_append_merge_delta():

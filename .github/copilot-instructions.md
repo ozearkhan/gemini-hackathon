@@ -55,7 +55,7 @@ Skill routing — match the task to the skill folder under `.github/skills/`:
   **Secret Manager** on GCP. Never commit `.env`.
 - **Least-privilege IAM.** Grant only the roles a service needs.
 - **ADK packaging rule:** `requirements.txt` and `agent.json` MUST live inside the agent
-  package folder (`demo_agent/demo_agent/`), never at the top level. ADK only copies the package.
+  package folder (`pdlc_agent/`), never at the top level. ADK only copies the package.
 - **Infra as Code:** all GCP resources defined in Terraform (`infra/`), not clicked in the console.
 - The ADK entry point variable MUST be named `root_agent`.
 

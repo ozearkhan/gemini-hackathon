@@ -1,4 +1,4 @@
 # Top-level requirements — NOT installed by ADK deploy
-# Add your dependencies to demo_agent/requirements.txt instead
+# Add your dependencies to pdlc_agent/requirements.txt instead
 google-adk[a2a]
 sse-starlette

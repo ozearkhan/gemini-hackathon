@@ -2,7 +2,7 @@
 
 import pytest
 
-from demo_agent.callbacks import ToolCallLimitError, enforce_tool_call_limit
+from pdlc_agent.callbacks import ToolCallLimitError, enforce_tool_call_limit
 
 
 def test_counter_increments_across_calls():

@@ -11,7 +11,7 @@
 #   1. Copy .env.example to .env and set GOOGLE_CLOUD_PROJECT
 #   2. Run: source .env && ./deploy.sh [mode]
 #
-# Run from this directory: demo_agent/
+# Run from this directory: repo root (contains the pdlc_agent/ package)
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -21,7 +21,7 @@ set -euo pipefail
 PROJECT="${GOOGLE_CLOUD_PROJECT:?'ERROR: Set GOOGLE_CLOUD_PROJECT in .env or environment'}"
 REGION="${GOOGLE_CLOUD_LOCATION:-us-central1}"
 SERVICE_NAME="${CLOUD_RUN_SERVICE_NAME:-org-hackathon-demo}"
-AGENT_PACKAGE="demo_agent"
+AGENT_PACKAGE="pdlc_agent"
 
 # Staging bucket for Agent Engine — ADK creates it as gs://[project-id]-staging by convention
 # Override by setting STAGING_BUCKET in your .env if needed
@@ -79,7 +79,7 @@ case "$MODE" in
     echo "   Service URL:    $SERVICE_URL"
     echo "   A2A Endpoint:   $SERVICE_URL/a2a/$AGENT_PACKAGE"
     echo ""
-    echo "   📋 Next step: Update 'url' in demo_agent/agent.json:"
+    echo "   📋 Next step: Update 'url' in pdlc_agent/agent.json:"
     echo "      $SERVICE_URL/a2a/$AGENT_PACKAGE"
     echo ""
     echo "   📬 Then raise a Hackathon Support Ticket to register it in Gemini Enterprise"

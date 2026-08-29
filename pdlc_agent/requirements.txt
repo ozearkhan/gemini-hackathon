@@ -1,12 +1,12 @@
 # Agent package dependencies
 # ─────────────────────────────────────────────────────────────────────────────
-# ⚠️  This requirements.txt MUST be inside the agent package folder (demo_agent/),
+# ⚠️  This requirements.txt MUST be inside the agent package folder (pdlc_agent/),
 # NOT in the parent folder. ADK copies this folder into the container and
 # installs these deps during the Docker build.
 #
 # Deployment targets:
-#   Cloud Run:      adk deploy cloud_run demo_agent --a2a ...
-#   Agent Engine:   adk deploy agent_engine demo_agent ...
+#   Cloud Run:      adk deploy cloud_run pdlc_agent --a2a ...
+#   Agent Engine:   adk deploy agent_engine pdlc_agent ...
 
 # Core ADK with A2A protocol support
 google-adk[a2a]

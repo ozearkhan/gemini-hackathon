@@ -146,7 +146,7 @@ or an IMMUTABLE POINT-IN-TIME FACT (yesterday's closing price)?
                  facts still need MERGE. This is the concrete "Delta over Parquet" call.
 ```
 
-*Stock tracker:* immutable-fact branch, append-only day-to-day, **except** corporate actions justify keeping MERGE capability. That's the ADR-worthy deviation — a named reason, not "just in case." (This decision tree is encoded deterministically in [`demo_agent/tools/load_pattern.py`](../demo_agent/tools/load_pattern.py).)
+*Stock tracker:* immutable-fact branch, append-only day-to-day, **except** corporate actions justify keeping MERGE capability. That's the ADR-worthy deviation — a named reason, not "just in case." (This decision tree is encoded deterministically in [`pdlc_agent/tools/load_pattern.py`](../pdlc_agent/tools/load_pattern.py).)
 
 ### 2.3 Storage format
 

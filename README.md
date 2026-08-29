@@ -11,26 +11,26 @@ Deployable to:
 ## Folder Structure
 
 ```
-demo_agent/                     ← Run all commands from this folder
+pdlc_agent/                     ← Run all commands from this folder
 ├── README.md                   ← This file
 ├── .env.example                ← Copy to .env and fill in your values
 ├── deploy.sh                   ← ./deploy.sh [local|cloud_run|agent_engine]
 ├── requirements.txt            ← (top-level, informational only)
-└── demo_agent/                 ← Agent package (Python)
+└── pdlc_agent/                 ← Agent package (Python)
     ├── __init__.py             ← Package marker
     ├── agent.py                ← Root agent definition (root_agent variable)
     ├── agent.json              ← A2A agent card (update url before submitting ticket)
     └── requirements.txt        ← ✅ Installed in container — MUST be here, not top-level
 ```
 
-> **⚠️ Key Rule:** `requirements.txt` and `agent.json` MUST be **inside the agent package folder** (`demo_agent/demo_agent/`), NOT at the top level. ADK copies only the package subfolder into the container.
+> **⚠️ Key Rule:** `requirements.txt` and `agent.json` MUST be **inside the agent package folder** (`pdlc_agent/`), NOT at the top level. ADK copies only the package subfolder into the container.
 
 ---
 
 ## Step 0 — Set Up Your Team Configuration
 
 ```bash
-cd demo_agent
+cd pdlc_agent
 
 # Copy the config template
 cp .env.example .env
@@ -69,7 +69,7 @@ source .env && ./deploy.sh local
 
 ## Deployment: Option A — Cloud Run with A2A
 
-Deploys the agent as a **Cloud Run service** with the A2A endpoint at `/a2a/demo_agent`.
+Deploys the agent as a **Cloud Run service** with the A2A endpoint at `/a2a/pdlc_agent`.
 
 ```bash
 source .env && ./deploy.sh cloud_run
@@ -85,7 +85,7 @@ TOKEN=$(gcloud auth print-identity-token)
 curl -X POST \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  "https://[your-service-url]/a2a/demo_agent" \
+  "https://[your-service-url]/a2a/pdlc_agent" \
   -d '{"jsonrpc":"2.0","id":"1","method":"message/send","params":{"message":{"messageId":"m1","role":"user","parts":[{"kind":"text","text":"Hello!"}]}}}'
 ```
 
@@ -93,9 +93,9 @@ curl -X POST \
 
 > **Teams do not have access to add agents to the Gemini Enterprise App directly.**
 
-1. Open `demo_agent/agent.json` and update the `url` field to your Cloud Run service URL:
+1. Open `pdlc_agent/agent.json` and update the `url` field to your Cloud Run service URL:
    ```
-   https://[your-service-url]/a2a/demo_agent
+   https://[your-service-url]/a2a/pdlc_agent
    ```
 2. **Raise a Hackathon Support Ticket** with:
    - **Subject:** `[Team Name] — Add A2A Agent to Gemini Enterprise App`
@@ -134,13 +134,13 @@ The Gemini Enterprise App validates the agent card strictly. Ensure these fields
 | `defaultInputModes` | `["text/plain"]` | "Value 'text' is invalid — must be MIME type" |
 | `defaultOutputModes` | `["text/plain"]` | Same MIME type error |
 | `skills[].inputModes` | `["text/plain"]` | Same MIME type error |
-| `url` | `https://[service-url]/a2a/demo_agent` | Must include `/a2a/{name}` suffix |
+| `url` | `https://[service-url]/a2a/pdlc_agent` | Must include `/a2a/{name}` suffix |
 
 ---
 
 ## Extending the Agent
 
-Edit `demo_agent/agent.py` to add tools:
+Edit `pdlc_agent/agent.py` to add tools:
 
 ```python
 from google.adk.tools import tool
@@ -156,7 +156,7 @@ root_agent = Agent(
 )
 ```
 
-Add packages to `demo_agent/requirements.txt` (inside the package folder).
+Add packages to `pdlc_agent/requirements.txt` (inside the package folder).
 
 ---
 
