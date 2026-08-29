@@ -1,6 +1,6 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
-# EPAM Hackathon — ADK Demo Agent Deployment Script
+# org Hackathon — ADK Demo Agent Deployment Script
 # ─────────────────────────────────────────────────────────────────────────────
 # Usage:
 #   ./deploy.sh local         — Run locally with ADK web UI
@@ -20,7 +20,7 @@ set -euo pipefail
 # ⚠️  SET THESE — either in .env or as environment variables before running
 PROJECT="${GOOGLE_CLOUD_PROJECT:?'ERROR: Set GOOGLE_CLOUD_PROJECT in .env or environment'}"
 REGION="${GOOGLE_CLOUD_LOCATION:-us-central1}"
-SERVICE_NAME="${CLOUD_RUN_SERVICE_NAME:-epam-hackathon-demo}"
+SERVICE_NAME="${CLOUD_RUN_SERVICE_NAME:-org-hackathon-demo}"
 AGENT_PACKAGE="demo_agent"
 
 # Staging bucket for Agent Engine — ADK creates it as gs://[project-id]-staging by convention

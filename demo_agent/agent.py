@@ -1,5 +1,5 @@
 """
-EPAM Hackathon — Demo ADK Agent
+org Hackathon — Demo ADK Agent
 ================================
 Reference example for Stream 2 participants.
 
@@ -25,14 +25,14 @@ from google.adk.agents import Agent
 # ─── Root Agent ────────────────────────────────────────────────────────────────
 # This is the main agent entry point. ADK looks for a variable named root_agent.
 root_agent = Agent(
-    name="epam_hackathon_assistant",
+    name="org_hackathon_assistant",
     model="gemini-2.5-flash",
     description=(
-        "EPAM Hackathon Demo Agent — an AI assistant showcasing Google Gemini "
-        "Enterprise capabilities at the EPAM hackathon."
+        "org Hackathon Demo Agent — an AI assistant showcasing Google Gemini "
+        "Enterprise capabilities at the org hackathon."
     ),
-    instruction="""You are the EPAM Hackathon Demo Agent, an AI assistant showcasing 
-Google Gemini Enterprise capabilities at the EPAM hackathon.
+    instruction="""You are the org Hackathon Demo Agent, an AI assistant showcasing 
+Google Gemini Enterprise capabilities at the org hackathon.
 
 Your role:
 - Welcome participants and explain what Gemini Enterprise can do

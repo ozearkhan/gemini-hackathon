@@ -7,7 +7,7 @@ __pycache__/
 dist/
 build/
 .eggs/
-
+.codebase-memory
 # Virtual environments
 .venv/
 venv/

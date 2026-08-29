@@ -1,4 +1,4 @@
-# EPAM Hackathon — ADK Demo Agent
+# Hackathon — ADK Demo Agent
 
 A minimal, production-ready **Google ADK agent** that serves as a reference example for Stream 2 participants. Clone this repo, set your project ID, and deploy in minutes.
 
@@ -30,8 +30,6 @@ demo_agent/                     ← Run all commands from this folder
 ## Step 0 — Set Up Your Team Configuration
 
 ```bash
-# Clone this repo
-git clone git@eu.git.epam.com:gcpp-ccoe/global-epam-ge-hackathon-2026/demo_agent.git
 cd demo_agent
 
 # Copy the config template
@@ -168,5 +166,5 @@ Add packages to `demo_agent/requirements.txt` (inside the package folder).
 |---|---|---|---|
 | `GOOGLE_CLOUD_PROJECT` | ✅ Yes | Your GCP sandbox project ID | _(must be set)_ |
 | `GOOGLE_CLOUD_LOCATION` | No | GCP region | `us-central1` |
-| `CLOUD_RUN_SERVICE_NAME` | No | Cloud Run service name | `epam-hackathon-demo` |
+| `CLOUD_RUN_SERVICE_NAME` | No | Cloud Run service name | `org-hackathon-demo` |
 | `STAGING_BUCKET` | No | Agent Engine staging bucket | `gs://[PROJECT]-staging` |

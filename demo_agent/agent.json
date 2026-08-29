@@ -1,10 +1,10 @@
 {
-  "name": "EPAM Hackathon Demo Agent",
-  "description": "AI assistant showcasing Gemini Enterprise capabilities at the EPAM Hackathon. Helps participants with hackathon info, ADK deployment patterns, and Gemini Enterprise integration.",
+  "name": "org Hackathon Demo Agent",
+  "description": "AI assistant showcasing Gemini Enterprise capabilities at the org Hackathon. Helps participants with hackathon info, ADK deployment patterns, and Gemini Enterprise integration.",
   "url": "https://[your-service-url]/a2a/demo_agent",
   "provider": {
-    "organization": "EPAM Systems",
-    "url": "https://epam.com"
+    "organization": "org Systems",
+    "url": "https://org.com"
   },
   "version": "1.0.0",
   "protocolVersion": "1.0",
@@ -18,8 +18,8 @@
     {
       "id": "hackathon_info",
       "name": "Hackathon Information",
-      "description": "Answers questions about the EPAM Gemini Enterprise Hackathon: streams, ADK deployment (Cloud Run A2A and Agent Engine), and Gemini Enterprise integration.",
-      "tags": ["hackathon", "gemini-enterprise", "adk", "epam"],
+      "description": "Answers questions about the org Gemini Enterprise Hackathon: streams, ADK deployment (Cloud Run A2A and Agent Engine), and Gemini Enterprise integration.",
+      "tags": ["hackathon", "gemini-enterprise", "adk", "org"],
       "examples": [
         "What is this hackathon about?",
         "What are Stream 1 and Stream 2?",
