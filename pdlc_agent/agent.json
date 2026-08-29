@@ -52,6 +52,18 @@
       ],
       "inputModes": ["text/plain"],
       "outputModes": ["text/plain"]
+    },
+    {
+      "id": "jira_breakdown",
+      "name": "JIRA Breakdown",
+      "description": "Breaks an approved design into an Epic -> Feature -> Story -> Task tree with acceptance criteria, sequencing infra prerequisites first and enforcing that every task traces to a requirement or ADR.",
+      "tags": ["data-engineering", "jira", "planning", "pdlc"],
+      "examples": [
+        "Break the stock-tracker design into a JIRA backlog.",
+        "Give me the Epic/Feature/Story/Task breakdown with acceptance criteria."
+      ],
+      "inputModes": ["text/plain"],
+      "outputModes": ["text/plain"]
     }
   ]
 }

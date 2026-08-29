@@ -12,6 +12,7 @@ from google.adk.agents import Agent
 
 from .agents.architecture_agent import architecture_agent
 from .agents.intake_triage_agent import intake_triage_agent
+from .agents.jira_planner_agent import jira_planner_agent
 from .agents.requirements_analyst_agent import requirements_analyst_agent
 from .config import settings
 
@@ -28,6 +29,8 @@ DELEGATION RULES (delegate to exactly ONE specialist for a single-topic request)
   `requirements_analyst_agent`.
 - Phase 2 — High-Level Design, ADRs, or how to LOAD/STORE a source (full vs
   incremental vs append, Parquet vs Delta): delegate to `architecture_agent`.
+- Phase 4 — breaking an approved design into a JIRA tree (Epic/Feature/Story/Task
+  with acceptance criteria and traceability): delegate to `jira_planner_agent`.
 
 Only fan out to multiple specialists if the user explicitly asks for a full,
 multi-phase workup.
@@ -45,6 +48,11 @@ root_agent = Agent(
         "phase-specialist subagents that each produce one lifecycle artifact."
     ),
     instruction=COORDINATOR_INSTRUCTION,
-    sub_agents=[intake_triage_agent, requirements_analyst_agent, architecture_agent],
+    sub_agents=[
+        intake_triage_agent,
+        requirements_analyst_agent,
+        architecture_agent,
+        jira_planner_agent,
+    ],
 )
 
