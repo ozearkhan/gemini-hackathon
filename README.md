@@ -1,170 +1,102 @@
-# Hackathon — ADK Demo Agent
+# Agentic PDLC Assistant — EPAM Gemini Enterprise Hackathon (Stream 2)
 
-A minimal, production-ready **Google ADK agent** that serves as a reference example for Stream 2 participants. Clone this repo, set your project ID, and deploy in minutes.
+> **Team:** `agenti-1711` (Agentic PDLC) · **Stream 2** — High-Code / Custom Agents & MCP
 
-Deployable to:
-- **Cloud Run** with A2A (Agent-to-Agent) protocol — for Gemini Enterprise agent integration
-- **Vertex AI Agent Engine** — for serverless managed agent hosting
+## 1. Executive Summary
 
----
+The **Agentic PDLC Assistant** automates the data-engineering **Project Development Lifecycle (PDLC)** — it turns a plain-language data request (e.g. *"build a daily competitor stock tracker"*) into the concrete lifecycle artifacts a senior data engineer would produce: a **triage note**, a versioned **Requirement Analysis**, a **High-Level Design** with **Architecture Decision Records**, and a **JIRA breakdown**.
 
-## Folder Structure
+It is a **multi-agent system** on Google's **Agent Development Kit (ADK)**: a lightweight coordinator routes each request to a narrow **phase specialist**, and every specialist grounds its output in **deterministic decision tools** rather than free-form LLM guessing — so decisions are traceable, reproducible, and hallucination-resistant. It is deployed to **Cloud Run (A2A)** and registered into **Gemini Enterprise**.
 
+**Business value:** compresses days of senior-engineer discovery and design into minutes, while producing a defensible **paper trail** — every choice traces back to a requirement or an ADR. That combination (speed *and* auditability) is what makes it enterprise-ready rather than a demo.
+
+## 2. Architecture
+
+Coordinator-Dispatcher pattern — one root agent routes to phase specialists, each with a limited scope and tool set (limited-scope agents are more reliable and hallucinate less than one monolithic agent).
+
+```mermaid
+flowchart TB
+    U[User request] --> C[pdlc_coordinator<br/>root_agent · fast model]
+    C -->|Phase 0| T[intake_triage_agent]
+    C -->|Phase 1| R[requirements_analyst_agent]
+    C -->|Phase 2| A[architecture_agent]
+    R -->|grounds facts| F[(evaluate_source_feasibility)]
+    A -->|grounds facts| L[(decide_load_pattern)]
 ```
-pdlc_agent/                     ← Run all commands from this folder
-├── README.md                   ← This file
-├── .env.example                ← Copy to .env and fill in your values
-├── deploy.sh                   ← ./deploy.sh [local|cloud_run|agent_engine]
-├── requirements.txt            ← (top-level, informational only)
-└── pdlc_agent/                 ← Agent package (Python)
-    ├── __init__.py             ← Package marker
-    ├── agent.py                ← Root agent definition (root_agent variable)
-    ├── agent.json              ← A2A agent card (update url before submitting ticket)
-    └── requirements.txt        ← ✅ Installed in container — MUST be here, not top-level
-```
 
-> **⚠️ Key Rule:** `requirements.txt` and `agent.json` MUST be **inside the agent package folder** (`pdlc_agent/`), NOT at the top level. ADK copies only the package subfolder into the container.
+- Full GCP/ADK design + the LangGraph→ADK migration map: **[docs/architecture.md](docs/architecture.md)**
+- The domain process it automates: **[docs/pdlc-playbook.md](docs/pdlc-playbook.md)**
+- Deploy + registration runbook: **[docs/deployment.md](docs/deployment.md)**
 
----
+## 3. Tech Stack & Dependencies
 
-## Step 0 — Set Up Your Team Configuration
+- **Language:** Python 3.12
+- **Framework:** Google ADK 2.8 (`google-adk[a2a]`), A2A protocol, `sse-starlette`
+- **Toolchain:** `agents-cli`, `uv`, `pytest`
+- **GCP:** Cloud Run, Vertex AI (Gemini), Artifact Registry, Cloud Build, Secret Manager, Cloud Trace
+- **Grounding (planned, GCP-native):** Google Developer Knowledge MCP + Vertex AI Search
+
+## 4. Environment Variables
+
+| Variable | Description | Required | Default |
+| :--- | :--- | :--- | :--- |
+| `GOOGLE_CLOUD_PROJECT` | GCP sandbox project ID (Layer 2) | Yes | `hl2-gcpp-ccoe-ge-h-agenti-1711` |
+| `GOOGLE_CLOUD_LOCATION` | GCP region | No | `us-central1` |
+| `CLOUD_RUN_SERVICE_NAME` | Cloud Run service name | No | `agenti-1711-pdlc` |
+| `PDLC_FAST_MODEL` | Model for coordinator routing | No | `gemini-2.5-flash` |
+| `PDLC_MODEL` | Model for phase specialists | No | `gemini-2.5-flash` |
+| `PDLC_MAX_TOOL_CALLS` | Per-turn tool-call ceiling (guardrail) | No | `10` |
+
+No secrets live in the repo — `.env` is git-ignored; production secrets use **Secret Manager**.
+
+## 5. Local Execution & Testing
 
 ```bash
-cd pdlc_agent
-
-# Copy the config template
-cp .env.example .env
+python -m venv .venv && source .venv/Scripts/activate   # bash/Linux: .venv/bin/activate
+pip install -r requirements-dev.txt -r pdlc_agent/requirements.txt
+python -m pytest                        # deterministic tool tests (fast, offline)
+source .env && ./deploy.sh local        # ADK dev UI at http://localhost:8000 (needs GCP auth)
 ```
 
-Edit `.env` and set your team's GCP sandbox project ID:
+> **Dev/run split:** this workstation is authoring-only (cannot auth to GCP). All GCP commands run on a remote with `gcloud` auth — edit here → `git push` → pull & run on remote. See **[.github/copilot-instructions.md](.github/copilot-instructions.md)**.
+
+## 6. Deployment & CI/CD
+
+Full runbook (first-time bootstrap → connectivity → IAM → deploy → registration): **[docs/deployment.md](docs/deployment.md)**.
 
 ```bash
-# Your GCP sandbox project ID — provided by the Hackathon support team
-GOOGLE_CLOUD_PROJECT=your-sandbox-project-id
-
-# Region — keep us-central1
-GOOGLE_CLOUD_LOCATION=us-central1
+source .env && ./deploy.sh cloud_run    # Cloud Run + A2A, org-policy-compliant (--no-allow-unauthenticated)
 ```
 
----
+The script deploys the container, then grants the Layer-1 Gemini Enterprise Discovery Engine SA `roles/run.invoker`. Registering the A2A endpoint into the shared Gemini Enterprise app is **team-gated** (Layer 1) — raise a support ticket with the deployed `pdlc_agent/agent.json` + service URL.
 
-## Step 1 — Authenticate
+## 7. Testing & Verification (UAT)
 
-```bash
-gcloud auth login
-gcloud auth application-default login
-gcloud config set project $GOOGLE_CLOUD_PROJECT
+Testing split follows the ADK guidance: **deterministic tools → `pytest`** (`tests/unit`); **agent behavior → `agents-cli eval`** (never assert on LLM response text in pytest).
+
+| Sample prompt | Expected behavior |
+| :--- | :--- |
+| *"We need a daily competitor stock tracker — where do we start?"* | Routes to **intake_triage** → one-paragraph triage note + proceed/fast-track decision |
+| *"Is Alpha Vantage viable for 10 calls/day?"* | Routes to **requirements_analyst** → grounded verdict: viable, 25/day ceiling, 15-min delay |
+| *"Full, incremental, or append-only for daily stock closes with corporate actions?"* | Routes to **architecture_agent** → append-only + Delta + MERGE, with a traceable ADR rationale |
+
+## Repository Layout
+
+```
+pdlc_agent/              ADK package — root_agent = pdlc_coordinator
+├── agent.py             coordinator (routes to phase specialists)
+├── config.py            env-driven models + guardrail limits
+├── callbacks.py         tool-call ceiling guardrail
+├── agents/              phase specialists: intake_triage · requirements_analyst · architecture
+├── tools/               deterministic decision tools: load_pattern · feasibility
+├── agent.json           A2A agent card
+└── requirements.txt     runtime deps (installed into the container)
+tests/unit/              deterministic tool + guardrail tests
+docs/                    playbook · architecture · deployment
+.github/skills/          vendored Google ADK + Cloud skills (agents-cli golden path)
+deploy.sh                local | cloud_run | agent_engine
 ```
 
----
+## License / IP
 
-## Local Development
-
-```bash
-source .env && ./deploy.sh local
-# Opens ADK web UI at http://localhost:8000
-```
-
----
-
-## Deployment: Option A — Cloud Run with A2A
-
-Deploys the agent as a **Cloud Run service** with the A2A endpoint at `/a2a/pdlc_agent`.
-
-```bash
-source .env && ./deploy.sh cloud_run
-```
-
-This script automatically:
-1. Builds and deploys the container to Cloud Run
-2. Grants the Gemini Enterprise Discovery Engine SA `roles/run.invoker`
-
-**Verify A2A is live:**
-```bash
-TOKEN=$(gcloud auth print-identity-token)
-curl -X POST \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  "https://[your-service-url]/a2a/pdlc_agent" \
-  -d '{"jsonrpc":"2.0","id":"1","method":"message/send","params":{"message":{"messageId":"m1","role":"user","parts":[{"kind":"text","text":"Hello!"}]}}}'
-```
-
-### 🔴 Register in Gemini Enterprise — Submit a Support Ticket (A2A)
-
-> **Teams do not have access to add agents to the Gemini Enterprise App directly.**
-
-1. Open `pdlc_agent/agent.json` and update the `url` field to your Cloud Run service URL:
-   ```
-   https://[your-service-url]/a2a/pdlc_agent
-   ```
-2. **Raise a Hackathon Support Ticket** with:
-   - **Subject:** `[Team Name] — Add A2A Agent to Gemini Enterprise App`
-   - **Include:** your updated `agent.json` content + Cloud Run service URL
-
----
-
-## Deployment: Option B — Vertex AI Agent Engine
-
-```bash
-source .env && ./deploy.sh agent_engine
-```
-
-Copy the **Resource Name** from the output:
-```
-projects/[project-number]/locations/us-central1/reasoningEngines/[ID]
-```
-
-### 🔴 Register in Gemini Enterprise — Submit a Support Ticket (Agent Engine)
-
-> **Teams do not have access to add agents to the Gemini Enterprise App directly.**
-
-**Raise a Hackathon Support Ticket** with:
-- **Subject:** `[Team Name] — Add Agent Engine Agent to Gemini Enterprise App`
-- **Include:** the full Resource Name above
-
----
-
-## agent.json — A2A Agent Card Requirements
-
-The Gemini Enterprise App validates the agent card strictly. Ensure these fields are correct:
-
-| Field | Required Value | Common Error |
-|---|---|---|
-| `protocolVersion` | `"1.0"` | "Missing required field: protocolVersion" |
-| `defaultInputModes` | `["text/plain"]` | "Value 'text' is invalid — must be MIME type" |
-| `defaultOutputModes` | `["text/plain"]` | Same MIME type error |
-| `skills[].inputModes` | `["text/plain"]` | Same MIME type error |
-| `url` | `https://[service-url]/a2a/pdlc_agent` | Must include `/a2a/{name}` suffix |
-
----
-
-## Extending the Agent
-
-Edit `pdlc_agent/agent.py` to add tools:
-
-```python
-from google.adk.tools import tool
-
-@tool
-def my_custom_tool(query: str) -> dict:
-    """Call your API or data source here."""
-    return {"result": "..."}
-
-root_agent = Agent(
-    ...
-    tools=[my_custom_tool],
-)
-```
-
-Add packages to `pdlc_agent/requirements.txt` (inside the package folder).
-
----
-
-## Environment Variables
-
-| Variable | Required | Description | Default |
-|---|---|---|---|
-| `GOOGLE_CLOUD_PROJECT` | ✅ Yes | Your GCP sandbox project ID | _(must be set)_ |
-| `GOOGLE_CLOUD_LOCATION` | No | GCP region | `us-central1` |
-| `CLOUD_RUN_SERVICE_NAME` | No | Cloud Run service name | `org-hackathon-demo` |
-| `STAGING_BUCKET` | No | Agent Engine staging bucket | `gs://[PROJECT]-staging` |
+All artifacts produced during the hackathon remain the intellectual property of EPAM, per the event terms.

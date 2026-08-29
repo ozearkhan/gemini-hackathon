@@ -27,6 +27,31 @@
       ],
       "inputModes": ["text/plain"],
       "outputModes": ["text/plain"]
+    },
+    {
+      "id": "requirement_feasibility",
+      "name": "Requirement Analysis & Source Feasibility",
+      "description": "Produces a structured Requirement Analysis and assesses whether a candidate data source/API is viable against expected call volume (rate limits, delay, tier, delta support), grounded in a verified-facts tool.",
+      "tags": ["data-engineering", "requirements", "feasibility", "pdlc"],
+      "examples": [
+        "Is Alpha Vantage viable for a daily tracker of 10 tickers?",
+        "Which stock API should I use for ~10 calls a day?",
+        "What should the Requirement doc cover for a competitor-watch dashboard?"
+      ],
+      "inputModes": ["text/plain"],
+      "outputModes": ["text/plain"]
+    },
+    {
+      "id": "intake_triage",
+      "name": "Intake & Triage",
+      "description": "Fast triage of a new data request — net-new vs existing, rough size, urgency — producing a one-paragraph triage note and a proceed/fast-track decision.",
+      "tags": ["data-engineering", "intake", "triage", "pdlc"],
+      "examples": [
+        "We need a daily competitor stock tracker — where do we start?",
+        "Triage this new data request for me."
+      ],
+      "inputModes": ["text/plain"],
+      "outputModes": ["text/plain"]
     }
   ]
 }
