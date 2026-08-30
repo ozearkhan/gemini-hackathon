@@ -1,0 +1,14 @@
+name: "agentic-pdlc"
+acli_version: "1.4.2"
+agent_directory: "pdlc_agent"
+region: "us-east1"
+base_template: "local_agentic-pdlc"
+generated_at: "2026-08-30T09:00:06.724362+00:00"
+language: "python"
+create_params:
+  deployment_target: "cloud_run"
+  session_type: "in_memory"
+  cicd_runner: "skip"
+  is_a2a: true
+  agent_gateway: False
+  agent_guidance_filename: "GEMINI.md"
