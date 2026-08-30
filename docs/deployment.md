@@ -64,17 +64,25 @@ gcloud services list --enabled --project=[PROJECT_ID] --format="value(config.nam
 ## Step 0b — Verify the reasoning model (do this before first deploy of `pdlc_agent`)
 
 `requirements_analyst_agent` and `architecture_agent` use `settings.reasoning_model`
-(`PDLC_REASONING_MODEL`, defaults to `gemini-3.1-pro-preview` — the best available
-reasoning-tier model confirmed via the command below on 2026-08-30). Per the ADK
-skill, never trust a model name from memory — list what's actually available for
-this project and override the env var if a newer/better reasoning model exists:
+(`PDLC_REASONING_MODEL`, defaults to `gemini-2.5-pro` — the best available GA
+(non-preview) reasoning-tier model, confirmed available directly in
+`us-central1`; preview-tier models were deliberately avoided since they can be
+region-restricted to `global` only and are subject to change without notice).
+Per the ADK skill, never trust a model name from memory — list what's actually
+available for this project and override the env var if a newer/better
+reasoning model exists:
 
 ```bash
-python -c "from google import genai; client = genai.Client(vertexai=True, project='hl2-gcpp-ccoe-ge-h-agenti-1711', location='us-central1'); [print(m.name) for m in client.models.list()]"
+python -c "from google import genai; client = genai.Client(vertexai=True, project='hl2-gcpp-ccoe-ge-h-agenti-1711', location='global'); [print(m.name) for m in client.models.list()]"
 ```
 
 If a newer reasoning-tier model is listed, set `PDLC_REASONING_MODEL=<name>` in `.env`
-before deploying.
+before deploying. Note: `GOOGLE_CLOUD_LOCATION` must be `global` (not a specific
+region like `us-central1`) for preview-tier models to actually serve — the
+Terraform-deployed service already sets this; when testing locally
+(`agents-cli playground`, `agents-cli eval run`), set
+`$env:GOOGLE_CLOUD_LOCATION = "global"` too, or you'll see a 404
+"Publisher model ... was not found" error even though the model is real.
 
 ---
 

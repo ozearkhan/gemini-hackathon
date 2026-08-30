@@ -10,6 +10,7 @@ from google.adk.agents import Agent
 
 from ..callbacks import before_tool_check_limit_and_gates
 from ..config import settings
+from ..tools.dev_knowledge import build_dev_knowledge_toolset
 from ..tools.iac_generator import generate_terraform_skeleton
 
 IAC_INSTRUCTION = """You are the InfraAsCode specialist. You ONLY act on an
@@ -28,7 +29,11 @@ and the intended cron schedule) and call `generate_terraform_skeleton` with them
 CRITICAL — HONESTY OVER COMPLETENESS:
 The tool deliberately does NOT generate every resource — some infra (e.g. the
 exact Cloud Scheduler -> Cloud Run Job wiring) needs current-syntax verification
-it cannot safely guess. When you report the result, clearly state what was
+it cannot safely guess. For anything flagged with a TODO(verify), you may use
+the `search_documents` tool (Developer Knowledge MCP, grounded in Google's own
+docs) to look up the current syntax before reporting it to the user — but do
+NOT edit the generated Terraform yourself; just report what you found so the
+developer can apply it. When you report the result, clearly state what was
 generated AND what was flagged as needing verification (read the TODO the tool
 leaves in main.tf) — never claim more was scaffolded than actually was.
 
@@ -46,6 +51,6 @@ iac_agent = Agent(
         "guessing it."
     ),
     instruction=IAC_INSTRUCTION,
-    tools=[generate_terraform_skeleton],
+    tools=[generate_terraform_skeleton, build_dev_knowledge_toolset()],
     before_tool_callback=before_tool_check_limit_and_gates,
 )

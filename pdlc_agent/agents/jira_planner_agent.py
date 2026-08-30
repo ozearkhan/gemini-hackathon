@@ -12,6 +12,7 @@ from google.adk.agents import Agent
 
 from ..callbacks import before_tool_check_limit
 from ..config import settings
+from ..tools.dev_knowledge import build_dev_knowledge_toolset
 from ..tools.traceability import check_task_traceability
 
 JIRA_PLANNER_INSTRUCTION = """You are the JiraPlanner for a data-engineering
@@ -42,7 +43,9 @@ RULES:
    fails the traceability check.
 
 Output the tree as clean nested Markdown; show each Story/Task's acceptance
-criteria and its trace_ref."""
+criteria and its trace_ref. If you need to confirm an exact current GCP
+service/resource name for a task's wording, use the `search_documents` tool
+(Developer Knowledge MCP, grounded in Google's own docs) rather than guessing."""
 
 jira_planner_agent = Agent(
     name="jira_planner_agent",
@@ -54,6 +57,6 @@ jira_planner_agent = Agent(
         "requirement or ADR. Runs AFTER iac_agent, not before."
     ),
     instruction=JIRA_PLANNER_INSTRUCTION,
-    tools=[check_task_traceability],
+    tools=[check_task_traceability, build_dev_knowledge_toolset()],
     before_tool_callback=before_tool_check_limit,
 )

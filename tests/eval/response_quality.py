@@ -32,7 +32,7 @@ def evaluate(instance):
 
     client = genai.Client()  # AI Studio (GEMINI_API_KEY) or Agent Platform (ADC)
     response = client.models.generate_content(
-        model="gemini-3.1-pro-preview",  # best available reasoning model, confirmed 2026-08-30
+        model="gemini-2.5-pro",  # GA reasoning-tier model, available directly in us-central1
         contents=prompt,
         config=types.GenerateContentConfig(
             temperature=0,  # deterministic grading

@@ -13,20 +13,22 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class Settings:
-    # Coordinator's routing model — bumped to the top reasoning model per explicit
-    # request; note this trades away the original cheap-routing cost optimization.
+    # Coordinator's routing model — cheap/fast GA model, available directly
+    # in us-central1 (no "global"-only preview-model quirks).
     fast_model: str = field(
-        default_factory=lambda: os.environ.get("PDLC_FAST_MODEL", "gemini-3.1-pro-preview")
+        default_factory=lambda: os.environ.get("PDLC_FAST_MODEL", "gemini-3.7-flash")
     )
     # Model for reasoning-heavier phase subagents.
     model: str = field(
-        default_factory=lambda: os.environ.get("PDLC_MODEL", "gemini-3.1-pro-preview")
+        default_factory=lambda: os.environ.get("PDLC_MODEL", "gemini-3.7-flash")
     )
     # Model for research + gap analysis (Phase 1) and GCP design reasoning (Phase 2).
-    # Confirmed best available reasoning-tier model for this project via
-    # `client.models.list()` (see docs/deployment.md Step 0b) — 2026-08-30.
+    # Best available GA (non-preview) reasoning-tier model, confirmed available
+    # directly in us-central1 — preview-tier models (e.g. gemini-3.1-pro-preview)
+    # are avoided here since they can be region-restricted to "global" only and
+    # are subject to change/removal without notice.
     reasoning_model: str = field(
-        default_factory=lambda: os.environ.get("PDLC_REASONING_MODEL", "gemini-3.1-pro-preview")
+        default_factory=lambda: os.environ.get("PDLC_REASONING_MODEL", "gemini-2.5-pro")
     )
     # Defensive ceiling on tool calls per turn — prevents runaway subagent loops.
     max_tool_calls_per_turn: int = field(

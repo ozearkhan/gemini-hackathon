@@ -15,6 +15,7 @@ from ..tools.approval import record_human_approval
 from ..tools.architecture_doc import save_architecture_doc
 from ..tools.architecture_standard import get_architecture_standard
 from ..tools.cost_estimate import estimate_gcp_cost
+from ..tools.dev_knowledge import build_dev_knowledge_toolset
 from ..tools.load_pattern import decide_load_pattern
 from .researcher_agent import build_researcher_agent
 
@@ -52,7 +53,11 @@ CORE RULE — GROUND, DON'T GUESS (three grounding sources, not memory):
 2. EVERYTHING ELSE ABOUT GCP not covered by the standard (current limits/
    capabilities, serving mode tradeoffs — this changes over time and must NOT
    come from memory): delegate the specific question to `gcp_researcher_agent`
-   and ground your architecture choice in what it returns.
+   and ground your architecture choice in what it returns. For a specific,
+   authoritative Google-published doc or current API/config syntax (e.g.
+   current Cloud Composer DAG best practices), prefer calling the
+   `search_documents` tool (Developer Knowledge MCP) directly instead —
+   it's grounded in Google's own docs corpus, not general web search.
 
 GCP-NATIVE PATTERN MENU (a menu, not a mandate — pick what fits the ACTUAL
 volume/requirements you were given, and state the trade-off explicitly if you
@@ -149,6 +154,7 @@ architecture_agent = Agent(
         estimate_gcp_cost,
         record_human_approval,
         save_architecture_doc,
+        build_dev_knowledge_toolset(),
     ],
     sub_agents=[gcp_researcher_agent],
     before_tool_callback=before_tool_check_limit_and_gates,
