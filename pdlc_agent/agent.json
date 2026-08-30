@@ -24,7 +24,8 @@
         "How should I load a daily stock-price feed for 10 competitor tickers?",
         "Full, incremental, or append-only for an immutable fact with restatement risk?",
         "Compare the cost of a lightweight vs enterprise-Airflow pattern for this volume.",
-        "Approved — go with the lightweight pattern, please finalize the design."
+        "Approved — go with the lightweight pattern, please finalize the design.",
+        "We're building a daily competitor stock tracker (Alpha Vantage, 10 tickers, refreshed every morning) — propose a GCP-native architecture with a cost estimate."
       ],
       "inputModes": ["text/plain"],
       "outputModes": ["text/plain"]
@@ -74,7 +75,8 @@
       "tags": ["data-engineering", "jira", "planning", "pdlc"],
       "examples": [
         "Break the stock-tracker design into a JIRA backlog.",
-        "Give me the Epic/Feature/Story/Task breakdown with acceptance criteria."
+        "Give me the Epic/Feature/Story/Task breakdown with acceptance criteria.",
+        "The stock-tracker architecture is approved and its infra is already provisioned — give me the JIRA breakdown for the remaining development work."
       ],
       "inputModes": ["text/plain"],
       "outputModes": ["text/plain"]
