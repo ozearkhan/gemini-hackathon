@@ -1,6 +1,6 @@
 {
   "name": "Agentic PDLC Assistant",
-  "description": "Automates the data-engineering Project Development Lifecycle (PDLC) end to end — as if a real GCP data-engineering team built it: turns a raw business request into a triage note, a versioned Requirement Analysis with gap/blocker analysis, a GCP-native HLD with a cost proposal and ADRs, an approved-design JIRA breakdown, and Infrastructure-as-Code scaffolding, via a coordinator that routes to phase specialists. Specialists ground factual claims (vendor APIs, current GCP service capabilities) in live Google Search research, costs in a labeled rough-estimate calculator, and the one genuinely-fixed methodology decision (load pattern) in a deterministic decision tree.",
+  "description": "An AI project manager for data-engineering requests: takes a raw business ask (e.g. \"we need a daily competitor stock tracker\") and drives it through triage, a versioned requirement analysis with gap detection, a GCP-native architecture with a cost proposal, approved infrastructure-as-code, and a traceable JIRA backlog \u2014 grounding every factual claim in live research instead of guessing.",
   "url": "https://agentic-pdlc-526265179106.us-central1.run.app/a2a/pdlc_agent",
   "provider": {
     "organization": "EPAM Systems",
@@ -46,7 +46,7 @@
       "description": "Turns a raw, informal business request into a structured, versioned Requirement Analysis — identifying gaps, ambiguities, risks, and open questions a stakeholder needs to resolve — and grounds every vendor/API factual claim in live research rather than memory.",
       "tags": ["data-engineering", "requirements", "gap-analysis", "research", "pdlc"],
       "examples": [
-        "Here's our raw request for a daily competitor stock tracker — what's missing before we can build?",
+        "We need a daily competitor stock price tracker for our top 10 competitor tickers (AAPL, MSFT, GOOGL, AMZN, META, NVDA, TSLA, ORCL, IBM, CRM), refreshed every morning before 8am, viewable on a dashboard for our exec team.",
         "Is Alpha Vantage viable for a daily tracker of 10 tickers?",
         "We answered the open questions — update the Requirement Analysis to v1.1."
       ],
