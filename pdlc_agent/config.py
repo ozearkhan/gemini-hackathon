@@ -13,19 +13,20 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class Settings:
-    # Fast, low-cost model for the coordinator's routing decisions.
+    # Coordinator's routing model — bumped to the top reasoning model per explicit
+    # request; note this trades away the original cheap-routing cost optimization.
     fast_model: str = field(
-        default_factory=lambda: os.environ.get("PDLC_FAST_MODEL", "gemini-2.5-flash")
+        default_factory=lambda: os.environ.get("PDLC_FAST_MODEL", "gemini-3.1-pro-preview")
     )
     # Model for reasoning-heavier phase subagents.
     model: str = field(
-        default_factory=lambda: os.environ.get("PDLC_MODEL", "gemini-2.5-flash")
+        default_factory=lambda: os.environ.get("PDLC_MODEL", "gemini-3.1-pro-preview")
     )
     # Model for research + gap analysis (Phase 1) and GCP design reasoning (Phase 2).
-    # Override via env once the strongest available reasoning model for this project
-    # is confirmed (see docs/deployment.md — list available models before deploying).
+    # Confirmed best available reasoning-tier model for this project via
+    # `client.models.list()` (see docs/deployment.md Step 0b) — 2026-08-30.
     reasoning_model: str = field(
-        default_factory=lambda: os.environ.get("PDLC_REASONING_MODEL", "gemini-2.5-pro")
+        default_factory=lambda: os.environ.get("PDLC_REASONING_MODEL", "gemini-3.1-pro-preview")
     )
     # Defensive ceiling on tool calls per turn — prevents runaway subagent loops.
     max_tool_calls_per_turn: int = field(
