@@ -1,6 +1,6 @@
 {
   "name": "Agentic PDLC Assistant",
-  "description": "Automates the data-engineering Project Development Lifecycle (PDLC): turns a data request into lifecycle artifacts (triage, requirement analysis, HLD/ADR, JIRA breakdown) via a coordinator that routes to phase specialists, grounded in deterministic decision tools.",
+  "description": "Automates the data-engineering Project Development Lifecycle (PDLC): turns a raw business request into lifecycle artifacts (triage note, versioned Requirement Analysis with gap/blocker analysis, HLD/ADR, JIRA breakdown) via a coordinator that routes to phase specialists. Specialists ground factual claims (vendor APIs, current GCP service capabilities) in live Google Search research, and the one genuinely-fixed methodology decision (load pattern) in a deterministic decision tree.",
   "url": "https://agenti-1711-pdlc-gtlpbazura-uc.a.run.app/a2a/pdlc_agent",
   "provider": {
     "organization": "EPAM Systems",
@@ -18,25 +18,25 @@
     {
       "id": "architecture_hld",
       "name": "Architecture & HLD Decisions",
-      "description": "Produces High-Level Design decisions and Architecture Decision Records for data pipelines — especially the load pattern and storage format for a source — grounded in a deterministic decision tree.",
-      "tags": ["data-engineering", "architecture", "adr", "pdlc", "gemini-enterprise"],
+      "description": "Produces High-Level Design decisions and Architecture Decision Records for data pipelines like a GCP data-engineering team — the load-pattern methodology is grounded in a deterministic decision tree, and current GCP service capabilities/limits are grounded via live research rather than a fixed template.",
+      "tags": ["data-engineering", "architecture", "adr", "pdlc", "gemini-enterprise", "gcp"],
       "examples": [
         "How should I load a daily stock-price feed for 10 competitor tickers?",
         "Full, incremental, or append-only for an immutable fact with restatement risk?",
-        "Parquet or Delta for a fact table that gets corporate-action restatements?"
+        "Which GCP services fit a small daily batch pipeline with corporate-action restatements?"
       ],
       "inputModes": ["text/plain"],
       "outputModes": ["text/plain"]
     },
     {
-      "id": "requirement_feasibility",
-      "name": "Requirement Analysis & Source Feasibility",
-      "description": "Produces a structured Requirement Analysis and assesses whether a candidate data source/API is viable against expected call volume (rate limits, delay, tier, delta support), grounded in a verified-facts tool.",
-      "tags": ["data-engineering", "requirements", "feasibility", "pdlc"],
+      "id": "requirement_analysis",
+      "name": "Requirement Analysis & Gap Detection",
+      "description": "Turns a raw, informal business request into a structured, versioned Requirement Analysis — identifying gaps, ambiguities, risks, and open questions a stakeholder needs to resolve — and grounds every vendor/API factual claim in live research rather than memory.",
+      "tags": ["data-engineering", "requirements", "gap-analysis", "research", "pdlc"],
       "examples": [
+        "Here's our raw request for a daily competitor stock tracker — what's missing before we can build?",
         "Is Alpha Vantage viable for a daily tracker of 10 tickers?",
-        "Which stock API should I use for ~10 calls a day?",
-        "What should the Requirement doc cover for a competitor-watch dashboard?"
+        "We answered the open questions — update the Requirement Analysis to v1.1."
       ],
       "inputModes": ["text/plain"],
       "outputModes": ["text/plain"]

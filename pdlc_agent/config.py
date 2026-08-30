@@ -21,6 +21,12 @@ class Settings:
     model: str = field(
         default_factory=lambda: os.environ.get("PDLC_MODEL", "gemini-2.5-flash")
     )
+    # Model for research + gap analysis (Phase 1) and GCP design reasoning (Phase 2).
+    # Override via env once the strongest available reasoning model for this project
+    # is confirmed (see docs/deployment.md — list available models before deploying).
+    reasoning_model: str = field(
+        default_factory=lambda: os.environ.get("PDLC_REASONING_MODEL", "gemini-2.5-pro")
+    )
     # Defensive ceiling on tool calls per turn — prevents runaway subagent loops.
     max_tool_calls_per_turn: int = field(
         default_factory=lambda: int(os.environ.get("PDLC_MAX_TOOL_CALLS", "10"))
