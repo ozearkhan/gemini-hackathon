@@ -27,6 +27,7 @@ gcp_researcher_agent = build_researcher_agent(
         "vs Cloud Composer for a given orchestration need, Power BI/Looker "
         "serving-mode tradeoffs, current quotas and pricing."
     ),
+    parent_name="architecture_agent",
 )
 
 ARCHITECTURE_INSTRUCTION = """You are the ArchitectureAgent — you reason and

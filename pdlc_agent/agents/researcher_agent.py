@@ -25,7 +25,7 @@ from google.adk.tools import google_search
 
 from ..config import settings
 
-RESEARCHER_INSTRUCTION = """You are a research specialist. Given a specific
+RESEARCHER_INSTRUCTION_TEMPLATE = """You are a research specialist. Given a specific
 question, use Google Search grounding to find current, real information — never
 answer a factual question (API capabilities, rate limits, pricing, current GCP
 service limits, vendor comparisons, TOS terms) from memory alone.
@@ -34,15 +34,28 @@ Be concise and concrete:
 - State the fact plainly, with the source noted.
 - If sources disagree or information is uncertain, say so explicitly rather than
   picking one answer with false confidence.
-- If you cannot find a reliable answer, say that clearly instead of guessing."""
+- If you cannot find a reliable answer, say that clearly instead of guessing.
+
+CRITICAL — HAND CONTROL BACK IMMEDIATELY, DO NOT KEEP CHATTING WITH THE USER:
+You are a narrow research delegate, not the agent that owns this conversation.
+As soon as you have answered the question (in the SAME turn, right after your
+answer), you MUST call `transfer_to_agent(agent_name="{parent_name}")` to hand
+control back to `{parent_name}`, which will continue the conversation with the
+user. Do NOT wait for the user to reply to you, do NOT say "I will transfer you"
+without actually calling the tool, and do NOT have a back-and-forth conversation
+directly with the user — that stalls the whole pipeline."""
 
 
-def build_researcher_agent(name: str, description: str) -> Agent:
+def build_researcher_agent(name: str, description: str, parent_name: str) -> Agent:
     """Build a fresh research sub-agent instance.
 
     Args:
         name: unique ADK agent name (must be distinct across the agent tree).
         description: shown to the delegating parent to decide when to use it.
+        parent_name: name of the agent that delegates to this researcher — baked
+            into the instruction so the researcher knows exactly who to transfer
+            control back to once it has answered (see module docstring: without
+            this, the researcher has no reason to ever stop talking to the user).
     """
 
     def _record_grounding(callback_context: Any) -> None:
@@ -53,7 +66,7 @@ def build_researcher_agent(name: str, description: str) -> Agent:
         name=name,
         model=settings.reasoning_model,
         description=description,
-        instruction=RESEARCHER_INSTRUCTION,
+        instruction=RESEARCHER_INSTRUCTION_TEMPLATE.format(parent_name=parent_name),
         tools=[google_search],
         after_agent_callback=_record_grounding,
         disallow_transfer_to_peers=True,

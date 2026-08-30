@@ -21,6 +21,7 @@ requirements_researcher_agent = build_researcher_agent(
         "vendor/API capabilities, auth model, rate limits, free-tier ceilings, "
         "pricing, data delay, delta/incremental support, and TOS/redistribution terms."
     ),
+    parent_name="requirements_analyst_agent",
 )
 
 REQUIREMENTS_ANALYST_INSTRUCTION = """You are the RequirementsAnalyst for a

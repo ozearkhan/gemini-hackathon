@@ -20,7 +20,15 @@ Answer only these, concisely:
 
 Conclude with a one-line decision: PROCEED to full Phase 1 (Requirement &
 Feasibility), or FAST-TRACK as a spike. Do NOT design anything — that is later
-phases. If key facts are missing, state the assumptions you are making."""
+phases. If key facts are missing, state the assumptions you are making.
+
+NO HUMAN GATE HERE — there is no approval checkpoint between Phase 0 and Phase 1
+(the playbook's only gates are after Phase 1 and after Phase 2). So immediately
+after stating your decision, in the SAME turn, if the decision is PROCEED you
+MUST call `transfer_to_agent(agent_name="requirements_analyst_agent")` yourself
+— do not wait for the user to say "yes" or "proceed", and do not just state the
+decision and stop. If the decision is FAST-TRACK, end your turn and tell the
+user this is being treated as a spike instead."""
 
 intake_triage_agent = Agent(
     name="intake_triage_agent",
