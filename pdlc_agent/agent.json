@@ -18,12 +18,13 @@
     {
       "id": "architecture_hld",
       "name": "Architecture & HLD Decisions",
-      "description": "Produces GCP-native High-Level Design decisions, cost proposals, and Architecture Decision Records like a GCP data-engineering team — grounded in a real, versioned internal architecture standard (not hallucinated), the load-pattern methodology in a deterministic decision tree, costs in a labeled rough-estimate calculator, and current GCP service capabilities/limits via live research. Persists the deliverable as a repo artifact.",
+      "description": "Produces a GCP-native High-Level Design: grounds the recommendation in the org's real, versioned architecture standard first, uses a deterministic decision tree for load-pattern methodology (full/incremental/append-only, restatement risk), researches current GCP service capabilities live via search and Google's own docs (never from memory), proposes a rough-order-of-magnitude cost comparison (clearly labeled as an estimate) across viable patterns, and produces Architecture Decision Records. Input: an approved/drafted requirement, or a direct methodology/cost question. Requires explicit human approval before the design is finalized — will not persist a design without it.",
       "tags": ["data-engineering", "architecture", "adr", "cost", "pdlc", "gemini-enterprise", "gcp"],
       "examples": [
         "How should I load a daily stock-price feed for 10 competitor tickers?",
         "Full, incremental, or append-only for an immutable fact with restatement risk?",
-        "Compare the cost of a lightweight vs enterprise-Airflow pattern for this volume."
+        "Compare the cost of a lightweight vs enterprise-Airflow pattern for this volume.",
+        "Approved — go with the lightweight pattern, please finalize the design."
       ],
       "inputModes": ["text/plain"],
       "outputModes": ["text/plain"]
@@ -31,11 +32,12 @@
     {
       "id": "iac_scaffolding",
       "name": "Infrastructure as Code",
-      "description": "Once an architecture is approved, scaffolds the infra prerequisites (BigQuery, Secret Manager) as real Terraform files in the repo — honestly flagging anything that needs current-syntax verification rather than guessing it — so the design leads to something a developer can actually run.",
+      "description": "Once an architecture is approved (structurally required — refuses to run otherwise), scaffolds real Terraform files for the verified-syntax prerequisites (BigQuery dataset/table, Secret Manager + IAM) so the design leads to something a developer can actually run. Input: project_id, region, dataset/table/secret identifiers, and a cron schedule, extracted from the approved design. Honestly flags (never guesses) anything needing current-syntax verification, such as Cloud Scheduler-to-Cloud-Run-Job wiring, rather than fabricating it.",
       "tags": ["data-engineering", "iac", "terraform", "pdlc", "gcp"],
       "examples": [
         "The architecture is approved — scaffold the infra for it.",
-        "Generate Terraform for the BigQuery table and secret this pipeline needs."
+        "Generate Terraform for the BigQuery table and secret this pipeline needs.",
+        "Scaffold Terraform for project my-project, region us-central1, dataset stock_data, table daily_prices, secret alpha-vantage-key, cron schedule '0 7 * * *'."
       ],
       "inputModes": ["text/plain"],
       "outputModes": ["text/plain"]
@@ -43,7 +45,7 @@
     {
       "id": "requirement_analysis",
       "name": "Requirement Analysis & Gap Detection",
-      "description": "Turns a raw, informal business request into a structured, versioned Requirement Analysis — identifying gaps, ambiguities, risks, and open questions a stakeholder needs to resolve — and grounds every vendor/API factual claim in live research rather than memory.",
+      "description": "Turns a raw, informal business request (Slack message, email, ticket) into a structured, versioned Requirement Analysis (v1.0, v1.1, ...) covering end-user archetype, business impact, semantic scope, entity/list stability, historical depth, source feasibility, output schema/cadence, non-functional requirements, data quality rules, and anything missing-but-needed — ending in a Build-Readiness verdict. Every vendor/API factual claim (rate limits, pricing, auth, TOS) is grounded in live research, never memory. Tip: a request that already states concrete specifics (exact entities/tickers, refresh cadence, target audience) produces a faster, more complete analysis than a vague ask.",
       "tags": ["data-engineering", "requirements", "gap-analysis", "research", "pdlc"],
       "examples": [
         "We need a daily competitor stock price tracker for our top 10 competitor tickers (AAPL, MSFT, GOOGL, AMZN, META, NVDA, TSLA, ORCL, IBM, CRM), refreshed every morning before 8am, viewable on a dashboard for our exec team.",
@@ -56,7 +58,7 @@
     {
       "id": "intake_triage",
       "name": "Intake & Triage",
-      "description": "Fast triage of a new data request — net-new vs existing, rough size, urgency — producing a one-paragraph triage note and a proceed/fast-track decision.",
+      "description": "Fast triage of a brand-new data request: identifies who's asking, whether it's net-new or overlaps with something existing, a rough size estimate (a 2-day script vs. a multi-sprint platform build), and urgency vs. importance — producing one short paragraph and an automatic PROCEED-to-requirements-analysis or FAST-TRACK-as-spike decision. No human approval is needed at this stage; it continues straight into requirement analysis on its own.",
       "tags": ["data-engineering", "intake", "triage", "pdlc"],
       "examples": [
         "We need a daily competitor stock tracker — where do we start?",
@@ -68,7 +70,7 @@
     {
       "id": "jira_breakdown",
       "name": "JIRA Breakdown",
-      "description": "Breaks an approved design into an Epic -> Feature -> Story -> Task tree with acceptance criteria, sequencing infra prerequisites first and enforcing that every task traces to a requirement or ADR.",
+      "description": "Breaks an approved, infrastructure-provisioned design into an Epic -> Feature -> Story -> Task tree with acceptance criteria, covering the remaining development work (ingestion, modeling, dashboard, observability) — infra setup itself is skipped since it's already provisioned as code by the Infrastructure-as-Code skill. Every leaf task must cite a requirement ID (e.g. REQ-1.3) or ADR ID (e.g. ADR-002), checked by a deterministic traceability tool before the tree is presented. Input: an approved design; will ask you to run infrastructure scaffolding first if that hasn't happened yet for this design.",
       "tags": ["data-engineering", "jira", "planning", "pdlc"],
       "examples": [
         "Break the stock-tracker design into a JIRA backlog.",

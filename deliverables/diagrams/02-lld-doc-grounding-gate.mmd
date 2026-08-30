@@ -1,0 +1,35 @@
+%% Diagram 2 — LLD: Doc-Grounding Gate + State Flow (the actual anti-hallucination mechanism)
+%% This is a Python before_tool_callback that RAISES — a structural refusal, not a prompt instruction.
+%% Legend: gray = agent step | amber = gate/decision | teal = state write | red = refusal path
+flowchart LR
+    subgraph Turn [A specialist turn that persists a claim/design]
+      direction LR
+      PLAN["specialist plans<br/>a factual claim / design decision"]:::agent
+      RES["researcher_agent (google_search)<br/>or Dev-Knowledge MCP fetch"]:::agent
+      GATE{{"grounding gate<br/>enforce_research_grounded()<br/>was a researcher consulted this session?"}}:::gate
+      SAVE["save_requirement_doc /<br/>save_architecture_doc /<br/>generate_terraform_skeleton"]:::agent
+      OUT[("published artifact<br/>written to repo")]:::artifact
+    end
+
+    PLAN --> RES
+    RES -->|after_agent_callback writes evidence| ST
+    RES --> GATE
+    GATE -->|"grounding_recorded present → allowed"| SAVE
+    GATE -->|"absent → REFUSED"| REJ["GroundingRequiredError<br/>(and ApprovalRequiredError if no<br/>record_human_approval for this slug)"]:::refuse
+    SAVE --> OUT
+
+    subgraph State [ADK session.state · single source of truth threaded through every node]
+      direction TB
+      ST["grounding_recorded: {researcher: true}<br/>approved_designs: {slug: true}<br/>requirement_doc / adr_log / jira_tree<br/>_turn_tool_call_count"]:::state
+    end
+    ST -.injected into.-> GATE
+    ST -.injected into.-> SAVE
+
+    %% "Only reachable path": SAVE is unreachable unless GATE passes — the edge is the gate.
+    %% Unhappy path: fetch fails → no grounding_recorded → GATE refuses → nothing persists (fail-closed).
+
+    classDef agent fill:#E8EAED,stroke:#5F6368,color:#202124;
+    classDef gate fill:#FCE8B2,stroke:#B06000,color:#3D2C00;
+    classDef artifact fill:#A7D7D2,stroke:#2A6F6A,color:#0C302D;
+    classDef state fill:#D7E3FC,stroke:#1A56C4,color:#0B2A66;
+    classDef refuse fill:#F4C7C3,stroke:#A50E0E,color:#3D0A0A;

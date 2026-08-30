@@ -1,0 +1,35 @@
+%% Diagram 4 — MCP / Grounding Ecosystem Map (HONEST: what is wired vs. next-phase)
+%% Legend: solid = wired & exercised in the demo | dashed = designed, next-phase (needs sign-off)
+%% EPAM guardrail: external non-GCP SaaS MCPs need Platform-Architect sign-off, so the default
+%% harness is GCP-native and phases emit artifacts into the repo instead of external SaaS.
+flowchart TB
+    HUB["PDLC agents<br/>(architecture / iac / jira / requirements)"]:::agent
+
+    subgraph Wired [WIRED · GCP-native, real in the demo]
+      direction TB
+      DK[("Google Developer Knowledge MCP<br/>Google's own current docs · Phase 2/4/5<br/><b>static — always available to codegen/ADR</b>")]:::real
+      GS[("google_search researcher sub-agent<br/>third-party vendor/API facts · Phase 1/2")]:::real
+      STD[("get_architecture_standard tool<br/>repo standard doc (Confluence stand-in) · Phase 2")]:::real
+    end
+    HUB --> DK
+    HUB --> GS
+    HUB --> STD
+
+    subgraph Next [NEXT PHASE · designed, NOT wired — needs sign-off]
+      direction TB
+      ATL[["Atlassian MCP<br/>Jira tickets (P4) · Confluence publish (P1/P2)"]]:::planned
+      GH[["GitHub MCP<br/>PR creation (P5)"]]:::planned
+      DYN[["Pattern-conditional MCPs<br/>dbt / Airflow / BigQuery<br/>loaded only if Phase-2 pattern needs them"]]:::planned
+    end
+    HUB -.next phase.-> ATL
+    HUB -.next phase.-> GH
+    HUB -.conditional on chosen pattern.-> DYN
+
+    NOTE["Today: Jira tree, requirement doc, HLD & Terraform are emitted as<br/>repo artifacts (GitLab), not pushed to external SaaS — same paper trail,<br/>zero external dependency. Live SaaS is a one-time-configured upgrade."]:::note
+    ATL -.-> NOTE
+    GH -.-> NOTE
+
+    classDef agent fill:#E8EAED,stroke:#5F6368,color:#202124;
+    classDef real fill:#A7D7D2,stroke:#2A6F6A,color:#0C302D;
+    classDef planned fill:#FFFFFF,stroke:#9AA0A6,color:#3C4043,stroke-dasharray:5 4;
+    classDef note fill:#FEF7E0,stroke:#B06000,color:#3D2C00;

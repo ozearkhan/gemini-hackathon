@@ -1,0 +1,29 @@
+%% Diagram 3 — Phase Flow: PDLC Phases 0→5 with gates (process backbone, judge-legible)
+%% Same backbone whether a human or an agent runs it — that is what makes each phase auditable.
+%% Legend: gray = agent-executed phase | amber = human gate | teal = published artifact
+flowchart LR
+    P0["Phase 0<br/>Intake & Triage"]:::agent --> A0(["triage note"]):::artifact --> P1
+    P1["Phase 1<br/>Requirement & Feasibility"]:::agent --> A1(["Requirement Analysis v1.x"]):::artifact --> G1
+
+    G1{{"Gate-1<br/>Requirement sign-off"}}:::gate
+    G1 -->|approved| P2
+    G1 -->|"revise → v1.1"| P1
+
+    P2["Phase 2<br/>Architecture & HLD"]:::agent --> A2(["HLD + ADR log + cost"]):::artifact --> G2
+
+    G2{{"Gate-2<br/>Architecture review"}}:::gate
+    G2 -->|approve| P5
+    G2 -->|"conditional / reject"| P2
+    G2 -.->|records| A3(["review decision record"]):::artifact
+
+    P5["Phase 5<br/>Infra-as-Code (first)"]:::agent --> A5(["Terraform in repo"]):::artifact --> P4
+    P4["Phase 4<br/>JIRA Breakdown"]:::agent --> A4(["Epic→Feature→Story→Task + AC"]):::artifact --> PB
+    PB["Phase 5b<br/>Build → Review → Deploy"]:::agent --> A6(["PR + test results + runbook"]):::artifact
+
+    %% Unhappy paths shown on the gates: Gate-1 revise loop (v1.0→v1.1); Gate-2 conditional/reject loop.
+    %% Note: agentic build provisions infra (Phase 5) right after Gate-2, before the JIRA breakdown,
+    %% so no "set up the infra" ticket is needed — the environment already exists when the backlog is picked up.
+
+    classDef agent fill:#E8EAED,stroke:#5F6368,color:#202124;
+    classDef gate fill:#FCE8B2,stroke:#B06000,color:#3D2C00;
+    classDef artifact fill:#A7D7D2,stroke:#2A6F6A,color:#0C302D;

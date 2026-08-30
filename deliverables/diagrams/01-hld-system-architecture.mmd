@@ -1,0 +1,72 @@
+%% Diagram 1 — HLD: System Architecture (what we actually shipped on Google ADK / GCP)
+%% Legend: gray = agent-executed phase | amber = human decision gate | teal = published artifact
+%% Every node names its artifact; every gate names the decision that blocks it.
+flowchart TB
+    IN(["Intake trigger<br/>plain-language data request"]):::ext --> ORCH
+
+    ORCH["pdlc_coordinator · root_agent<br/>(Coordinator-Dispatcher, fast model)<br/><i>artifact: routing decision → 1 specialist</i>"]:::agent
+
+    subgraph Phases [PDLC phase specialists · one artifact each]
+      direction TB
+      P0["Phase 0 · intake_triage_agent<br/><i>artifact: triage note</i>"]:::agent
+      P1["Phase 1 · requirements_analyst_agent<br/><i>artifact: Requirement Analysis v1.x</i>"]:::agent
+      P2["Phase 2 · architecture_agent<br/><i>artifact: HLD + cost proposal + ADR log</i>"]:::agent
+      P5["Phase 5 · iac_agent (runs FIRST, post-approval)<br/><i>artifact: Terraform in repo</i>"]:::agent
+      P4["Phase 4 · jira_planner_agent<br/><i>artifact: Epic→Feature→Story→Task + AC</i>"]:::agent
+    end
+
+    ORCH -->|Phase 0| P0
+    ORCH -->|Phase 1| P1
+    ORCH -->|Phase 2| P2
+    ORCH -->|Phase 5| P5
+    ORCH -->|Phase 4| P4
+
+    P1 --> G1{{"Gate-1 · Requirement sign-off<br/>blocks until human approval<br/>recorded in session.state"}}:::gate
+    G1 -->|approved| P2
+    G1 -->|revise → v1.1| P1
+
+    P2 --> G2{{"Gate-2 · Architecture review<br/>approve / conditional / reject<br/>save refused w/o record_human_approval"}}:::gate
+    G2 -->|approved| P5
+    G2 -->|conditional / reject| P2
+
+    P5 --> P4
+
+    RS[("researcher_agent<br/>google_search grounding<br/><i>real web facts, not memory</i>")]:::tool
+    P1 -.delegates facts.-> RS
+    P2 -.delegates facts.-> RS
+
+    subgraph ToolLayer [Tool + MCP layer · deterministic tools + GCP-native grounding]
+      direction LR
+      T1[("decide_load_pattern<br/>deterministic tree")]:::tool
+      T2[("estimate_gcp_cost<br/>ROM calculator")]:::tool
+      T3[("get_architecture_standard<br/>repo standard doc")]:::tool
+      T4[("Dev-Knowledge MCP<br/>Google's own docs")]:::tool
+      T5[("generate_terraform_skeleton")]:::tool
+      T6[("check_task_traceability")]:::tool
+    end
+    P2 --> T1 & T2 & T3 & T4
+    P5 --> T4 & T5
+    P4 --> T6
+
+    subgraph Guards [Structural guardrails · before_tool_callback, raises + refuses]
+      GA["approval gate<br/>ApprovalRequiredError"]:::guard
+      GG["grounding gate<br/>GroundingRequiredError"]:::guard
+      GL["tool-call ceiling"]:::guard
+    end
+    P2 -.enforced by.-> GA
+    P5 -.enforced by.-> GA
+    P1 -.enforced by.-> GG
+
+    OBS(["Observability · Cloud Trace (OTel) + BigQuery Agent Analytics<br/>one nested trace per request_id"]):::ext
+    OBS -.traces every node.-> ORCH
+    OBS -.-> Phases
+    OBS -.-> ToolLayer
+
+    %% Unhappy paths: Gate reject → loop back with reason; grounding/approval missing → tool refuses;
+    %% research source down → researcher reports uncertainty instead of guessing.
+
+    classDef agent fill:#E8EAED,stroke:#5F6368,color:#202124;
+    classDef gate fill:#FCE8B2,stroke:#B06000,color:#3D2C00;
+    classDef tool fill:#A7D7D2,stroke:#2A6F6A,color:#0C302D;
+    classDef guard fill:#F4C7C3,stroke:#A50E0E,color:#3D0A0A;
+    classDef ext fill:#FFFFFF,stroke:#9AA0A6,color:#3C4043,stroke-dasharray:4 3;
