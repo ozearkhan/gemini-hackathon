@@ -219,7 +219,7 @@ A real checklist, not a rubber stamp:
 
 Outcome: **approve**, **reject**, or **approve with conditions**. Rejected/conditional → back to Phase 2; the ADR log records what changed.
 
-Once approved, the design is ready for two parallel next steps: the JIRA breakdown (Phase 4) and Infrastructure-as-Code scaffolding — the design should lead to something a developer can actually run, not just a document. (See [`pdlc_agent/tools/iac_generator.py`](../pdlc_agent/tools/iac_generator.py) — generates the infra it can verify the syntax for, and honestly flags what still needs a human/researcher to confirm rather than guessing it.)
+Once approved, the design is ready for its next step: **Infrastructure-as-Code scaffolding first**, then the JIRA breakdown (Phase 4) for the remaining development work. In this agentic implementation, the agent provisions real infra directly (Terraform for BigQuery/Secret Manager), so there is no need for a JIRA "set up the infra" ticket — by the time a team picks up the backlog, the environment already exists. (See [`pdlc_agent/tools/iac_generator.py`](../pdlc_agent/tools/iac_generator.py) — generates the infra it can verify the syntax for, and honestly flags what still needs a human/researcher to confirm rather than guessing it.)
 
 ---
 
@@ -233,18 +233,13 @@ Epic (whole tracker)
 ```
 
 Two things juniors miss:
-1. **Infra prerequisites are their own tasks, sequenced first** — API key + Secret Manager entry, IAM role, bucket/table creation, scheduler connection. Otherwise you block mid-sprint on an access request nobody filed.
+1. **In the classic (manual) process, infra prerequisites are their own tasks, sequenced first** — API key + Secret Manager entry, IAM role, bucket/table creation, scheduler connection. In this agentic implementation the agent has already provisioned that infra as code (Phase 2→Gate→IaC scaffolding, before this phase runs) — so the breakdown below skips straight to the development work a team picks up against an environment that already exists.
 2. **Every story/task has acceptance criteria traceable to a Phase-1/2 line item.** "Extractor pulls daily close for 10 tickers, retries 3× on 429 with backoff, writes to Bronze idempotently" is testable; "build the extractor" is not.
 
-### Worked breakdown (abridged)
+### Worked breakdown (abridged, infra already provisioned)
 
 ```
 EPIC: Daily Stock Tracker for Competitor Watch
-FEATURE: Infra & Access Prerequisites
-  - Provision Finnhub API key, store in Secret Manager
-  - Create IAM role (read secret, write landing bucket/table)
-  - Create GCS landing bucket + bronze/silver/gold tables
-  - Set up scheduler (Cloud Run Job / Cloud Scheduler)
 FEATURE: Ingestion
   - Story: pull daily close for the fixed 10-ticker list → Bronze daily.
     AC: retries on 429/5xx with backoff; idempotent re-run; logs row count.

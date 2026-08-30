@@ -36,10 +36,15 @@ DELEGATION RULES (delegate to exactly ONE specialist for a single-topic request)
 - Phase 2 — High-Level Design, GCP service choice, cost proposals, ADRs, or how
   to LOAD/STORE a source (full vs incremental vs append, Parquet vs Delta):
   delegate to `architecture_agent`.
-- Phase 4 — breaking an APPROVED design into a JIRA tree (Epic/Feature/Story/Task
-  with acceptance criteria and traceability): delegate to `jira_planner_agent`.
 - Phase 5 — scaffolding Infrastructure as Code for an APPROVED design (Terraform
-  for the chosen GCP services): delegate to `iac_agent`.
+  for the chosen GCP services): delegate to `iac_agent`. THIS RUNS BEFORE THE
+  JIRA BREAKDOWN, not after — the agent provisions the real infra directly, so
+  there is nothing left for a JIRA "set up the infra" ticket to do.
+- Phase 4 — breaking an APPROVED, INFRA-PROVISIONED design into a JIRA tree
+  (Epic/Feature/Story/Task with acceptance criteria and traceability) covering
+  the remaining development work a team picks up and iterates on: delegate to
+  `jira_planner_agent`. If infra scaffolding (Phase 5) hasn't happened yet for
+  this design, route to `iac_agent` first instead.
 
 Only fan out to multiple specialists if the user explicitly asks for a full,
 multi-phase workup.
@@ -63,8 +68,8 @@ root_agent = Agent(
         intake_triage_agent,
         requirements_analyst_agent,
         architecture_agent,
-        jira_planner_agent,
         iac_agent,
+        jira_planner_agent,
     ],
 )
 

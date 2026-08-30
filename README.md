@@ -20,14 +20,14 @@ flowchart TB
     C -->|Phase 0| T[intake_triage_agent]
     C -->|Phase 1| R[requirements_analyst_agent]
     C -->|Phase 2| A[architecture_agent]
-    C -->|Phase 4, approved| J[jira_planner_agent]
-    C -->|Phase 5, approved| I[iac_agent]
+    C -->|Phase 5, approved, FIRST| I[iac_agent]
+    C -->|Phase 4, after infra provisioned| J[jira_planner_agent]
     R -->|delegates facts| RR[(researcher_agent<br/>google_search)]
     A -->|delegates facts| AR[(researcher_agent<br/>google_search)]
     A -->|grounds methodology| L[(decide_load_pattern)]
     A -->|grounds cost| E[(estimate_gcp_cost)]
-    J -->|enforces| TR[(check_task_traceability)]
     I -->|scaffolds| G[(generate_terraform_skeleton)]
+    J -->|enforces| TR[(check_task_traceability)]
 ```
 
 
