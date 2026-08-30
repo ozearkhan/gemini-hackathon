@@ -8,14 +8,17 @@ developer can actually run, not just a document.
 
 from google.adk.agents import Agent
 
-from ..callbacks import before_tool_check_limit
+from ..callbacks import before_tool_check_limit_and_gates
 from ..config import settings
 from ..tools.iac_generator import generate_terraform_skeleton
 
 IAC_INSTRUCTION = """You are the InfraAsCode specialist. You ONLY act on an
-architecture that has already been APPROVED by the business/reviewer — if the
-user has not said the design is approved, tell them you need explicit approval
-first and do not generate infra.
+architecture that has already been APPROVED by the business/reviewer —
+STRUCTURALLY enforced: `generate_terraform_skeleton` is refused by the system
+unless `record_human_approval(slug)` was already called for this design's slug
+(the architecture_agent calls this when the user approves). If the user has
+not said the design is approved, tell them you need explicit approval first
+and do not attempt to call the tool — it will raise an error if you do.
 
 Once approved, extract the concrete parameters from the approved design (ask a
 brief clarifying question for anything missing — project_id, region, a
@@ -44,5 +47,5 @@ iac_agent = Agent(
     ),
     instruction=IAC_INSTRUCTION,
     tools=[generate_terraform_skeleton],
-    before_tool_callback=before_tool_check_limit,
+    before_tool_callback=before_tool_check_limit_and_gates,
 )

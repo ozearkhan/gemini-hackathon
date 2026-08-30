@@ -110,6 +110,8 @@ def before_tool_require_grounding(tool, args, tool_context):
 
 This same doc-gate is reused in Phase 2 (verify a framework can do what an ADR proposes *before* writing the ADR) and Phase 5 (verify the exact current API before generating pipeline code) — one component, not rebuilt per phase.
 
+**Built, not just illustrative:** the actual implementation is [`enforce_research_grounded`](../pdlc_agent/callbacks.py) — coarser-grained than the per-library sketch above (it checks "was any researcher sub-agent consulted this session" rather than per-claim topic matching, since that would need semantic matching beyond deterministic Python), but it is real refusal, wired into `requirements_analyst_agent`, `architecture_agent`, and `iac_agent` via `before_tool_check_limit_and_gates`. See §5 and §9 item 4.
+
 ---
 
 ## 4. Shared state (ADK `session.state`)
@@ -141,12 +143,13 @@ Every artifact from the playbook's Appendix A is a field. Written with `output_k
 
 ## 5. Human-in-the-loop gates
 
-Two gates, both recording a decision into state before the flow proceeds.
+Two layers, not one:
 
-- **Interactive (Gemini Enterprise chat):** the gate is the conversation. The coordinator presents the Requirement doc / HLD and waits for the user's "approve" or "revise" in the next turn; the decision is written to `requirement_signoff` / `architecture_review`.
-- **Unattended (graph `Workflow`):** a human-input node pauses the graph durably (state persisted by the Session Service → survives restart); the decision arrives as a routed event (`approve` / `conditional` / `reject`). A rejected review can resume from the post-Phase-1 checkpoint instead of re-deriving everything.
+- **Structural enforcement (built, `before_tool_callback`):** the finalize/persist tools (`save_architecture_doc`, `generate_terraform_skeleton`, and — for grounding — `save_requirement_doc`) are refused at the Python level unless the required state was actually recorded: a human approval (`record_human_approval(slug)`) for the first two, and evidence that a researcher sub-agent was actually consulted this session (an `after_agent_callback` on `researcher_agent.py`'s factory writes this) for all three. See [`pdlc_agent/callbacks.py`](../pdlc_agent/callbacks.py) — this is real refusal (raises `ApprovalRequiredError` / `GroundingRequiredError`), not instruction text a model could ignore.
+- **Interactive (Gemini Enterprise chat):** the conversation itself is where the human's decision is elicited — the specialist asks, the user answers, the specialist calls `record_human_approval` once they do. This is lighter than a durable pause: if the session ends before approval, the state is gone and the gate simply re-applies on the next attempt (acceptable for a single-session chat flow; not yet a multi-day durable gate).
+- **Unattended, durable (graph `Workflow`, NOT built):** a human-input node pausing the graph durably (state persisted by the Session Service → survives restart), with rejection able to resume from a checkpoint instead of re-deriving everything. This remains the heavier, still-open upgrade if a fully async/multi-day approval flow is ever needed — the `before_tool_callback` gate above solves the "is it actually enforced" problem the interactive-only version had, without requiring this migration.
 
-No auto-approve path exists by default — loosening a gate is a deliberate topology change, not a silent one.
+No auto-approve path exists — the gated tools raise unless the recording tool/callback ran first.
 
 ---
 
@@ -198,7 +201,8 @@ All bound via ADK's MCP toolset. **Binding an MCP server *into Gemini Enterprise
 | 2 | `intake_triage_agent` (Phase 0) + `requirements_analyst_agent` (Phase 1) | ✅ **done** |
 | 2.5 | Real research: `google_search`-grounded `researcher_agent` factory replaces hardcoded facts; reasoning-tier model for Phase 1/2 | ✅ **done** |
 | 3 | GCP-native pattern menu, `estimate_gcp_cost` cost proposals, `jira_planner_agent` (Phase 4, traceability-enforced), `iac_agent` (Phase 5, Terraform scaffolding, approval-gated) | ✅ **done** |
-| 4 | Durable HITL gates (graph `Workflow` `interrupt()`, not just chat-turn) for requirement sign-off and architecture review | ⏭️ next |
+| 4 | Structural enforcement of approval + grounding gates via `before_tool_callback` (refuses `save_architecture_doc`/`generate_terraform_skeleton`/`save_requirement_doc` without recorded state) — closes the "prompt-only, unenforced" gap without a Workflow Runtime migration | ✅ **done** |
+| 4b | Durable HITL gates (graph `Workflow` `interrupt()`, survives session restart) — a heavier upgrade if a multi-day async approval flow is ever needed; not required for the current chat-turn flow | ⏭️ open |
 | 5 | Observability (Cloud Trace) + `agents-cli eval` dataset incl. a grounding metric | ⏭️ |
 | 6 | Terraform `infra/` for the agent's OWN deployment + Secret Manager (distinct from the IaC the agent *generates* for user pipelines) | ⏭️ |
 | 7 | Raise the Gemini Enterprise binding ticket; end-to-end pilot on the stock-tracker request | ⏭️ |

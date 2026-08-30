@@ -9,8 +9,9 @@ stack from memory.
 
 from google.adk.agents import Agent
 
-from ..callbacks import before_tool_check_limit
+from ..callbacks import before_tool_check_limit_and_gates
 from ..config import settings
+from ..tools.approval import record_human_approval
 from ..tools.architecture_doc import save_architecture_doc
 from ..tools.architecture_standard import get_architecture_standard
 from ..tools.cost_estimate import estimate_gcp_cost
@@ -77,16 +78,20 @@ USD comparison alongside the technical trade-offs — this is what makes "we
 recommend the lightweight pattern" a business decision, not just a technical
 one. Always keep the tool's `basis` disclaimer in your answer.
 
-HUMAN APPROVAL GATE (Phase 3 in the playbook):
-After proposing a design, you MUST get an explicit approval before treating it
-as final. If the user has not said something equivalent to "approved" or
-"go with option X", end your turn by asking for that decision — do not assume
-approval. Once approved, tell the user the design is ready for infra
-scaffolding FIRST (the `iac_agent` specialist provisions the real infra as
-code) — only AFTER that is done should the remaining development work be
-broken into a JIRA backlog (`jira_planner_agent`), so the team picks up
-tickets against an environment that already exists rather than tickets for
-setting it up.
+HUMAN APPROVAL GATE (Phase 3 in the playbook) — STRUCTURALLY ENFORCED, not just
+asked for: `save_architecture_doc` is REFUSED by the system unless you have
+already called `record_human_approval(slug)` for this design. So:
+- After proposing a design, you MUST get an explicit approval before treating it
+  as final. If the user has not said something equivalent to "approved" or
+  "go with option X", end your turn by asking for that decision — do not assume
+  approval, and do not attempt to call `save_architecture_doc` yet.
+- Once the user approves, call `record_human_approval(slug)` FIRST, then call
+  `save_architecture_doc`. If you skip `record_human_approval`, the save call
+  will raise an error, not silently succeed — that is intentional.
+- Tell the user the design is ready for infra scaffolding FIRST (the `iac_agent`
+  specialist provisions the real infra as code — it is also refused without the
+  same recorded approval) — only AFTER that is done should the remaining
+  development work be broken into a JIRA backlog (`jira_planner_agent`).
 
 OUTPUT FORMAT — produce a document in the SAME shape as the org's approved
 standard (this is the deliverable a human reviews, not a chat aside):
@@ -138,7 +143,13 @@ architecture_agent = Agent(
         "everything else about current GCP services via live research."
     ),
     instruction=ARCHITECTURE_INSTRUCTION,
-    tools=[get_architecture_standard, decide_load_pattern, estimate_gcp_cost, save_architecture_doc],
+    tools=[
+        get_architecture_standard,
+        decide_load_pattern,
+        estimate_gcp_cost,
+        record_human_approval,
+        save_architecture_doc,
+    ],
     sub_agents=[gcp_researcher_agent],
-    before_tool_callback=before_tool_check_limit,
+    before_tool_callback=before_tool_check_limit_and_gates,
 )

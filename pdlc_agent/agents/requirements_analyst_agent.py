@@ -9,7 +9,7 @@ instead of guessing facts from memory.
 
 from google.adk.agents import Agent
 
-from ..callbacks import before_tool_check_limit
+from ..callbacks import before_tool_check_limit_and_gates
 from ..config import settings
 from ..tools.requirement_doc import save_requirement_doc
 from .researcher_agent import build_researcher_agent
@@ -32,6 +32,9 @@ CORE RULE — GROUND FACTS, REASON ABOUT GAPS:
 - Any FACTUAL claim about the outside world (vendor/API capabilities, rate
   limits, pricing, delay, TOS) MUST come from delegating to
   `requirements_researcher_agent` — never state such a fact from memory.
+  STRUCTURALLY ENFORCED: `save_requirement_doc` is refused by the system unless
+  `requirements_researcher_agent` was actually consulted this session — not
+  just an instruction, the call will raise an error if you skip it.
 - Finding GAPS, AMBIGUITIES, RISKS, and OPEN QUESTIONS in the request itself is
   YOUR reasoning job, not something to look up. Apply the checklist below
   systematically to the specific request you were given.
@@ -131,6 +134,6 @@ requirements_analyst_agent = Agent(
     instruction=REQUIREMENTS_ANALYST_INSTRUCTION,
     tools=[save_requirement_doc],
     sub_agents=[requirements_researcher_agent],
-    before_tool_callback=before_tool_check_limit,
+    before_tool_callback=before_tool_check_limit_and_gates,
 )
 

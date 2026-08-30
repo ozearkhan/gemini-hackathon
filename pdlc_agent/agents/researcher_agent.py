@@ -8,9 +8,17 @@ by phase specialists that also need FunctionTools.
 
 A factory (not a shared singleton) because an ADK agent instance has one parent —
 each caller that wants a researcher gets its own instance.
+
+Each instance also records, in shared session state, that it was actually
+consulted this session — see pdlc_agent/callbacks.py's grounding gate, which
+refuses to let a specialist persist a claim unless this record exists. This
+turns "ground your answer in research" from instruction text into something
+structurally checked.
 """
 
 from __future__ import annotations
+
+from typing import Any
 
 from google.adk.agents import Agent
 from google.adk.tools import google_search
@@ -36,12 +44,18 @@ def build_researcher_agent(name: str, description: str) -> Agent:
         name: unique ADK agent name (must be distinct across the agent tree).
         description: shown to the delegating parent to decide when to use it.
     """
+
+    def _record_grounding(callback_context: Any) -> None:
+        """after_agent_callback: mark that this researcher ran this session."""
+        callback_context.state.setdefault("grounding_recorded", {})[name] = True
+
     return Agent(
         name=name,
         model=settings.reasoning_model,
         description=description,
         instruction=RESEARCHER_INSTRUCTION,
         tools=[google_search],
+        after_agent_callback=_record_grounding,
         disallow_transfer_to_peers=True,
         disallow_transfer_to_parent=False,
     )
