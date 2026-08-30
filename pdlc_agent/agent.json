@@ -18,7 +18,7 @@
     {
       "id": "architecture_hld",
       "name": "Architecture & HLD Decisions",
-      "description": "Produces GCP-native High-Level Design decisions, cost proposals, and Architecture Decision Records like a GCP data-engineering team — the load-pattern methodology is grounded in a deterministic decision tree, costs in a labeled rough-estimate calculator, and current GCP service capabilities/limits via live research rather than a fixed template.",
+      "description": "Produces GCP-native High-Level Design decisions, cost proposals, and Architecture Decision Records like a GCP data-engineering team — grounded in a real, versioned internal architecture standard (not hallucinated), the load-pattern methodology in a deterministic decision tree, costs in a labeled rough-estimate calculator, and current GCP service capabilities/limits via live research. Persists the deliverable as a repo artifact.",
       "tags": ["data-engineering", "architecture", "adr", "cost", "pdlc", "gemini-enterprise", "gcp"],
       "examples": [
         "How should I load a daily stock-price feed for 10 competitor tickers?",

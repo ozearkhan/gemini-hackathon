@@ -11,6 +11,8 @@ from google.adk.agents import Agent
 
 from ..callbacks import before_tool_check_limit
 from ..config import settings
+from ..tools.architecture_doc import save_architecture_doc
+from ..tools.architecture_standard import get_architecture_standard
 from ..tools.cost_estimate import estimate_gcp_cost
 from ..tools.load_pattern import decide_load_pattern
 from .researcher_agent import build_researcher_agent
@@ -31,7 +33,14 @@ is to get the project from an approved requirement to something a developer can
 actually build: a concrete GCP-native HLD, a cost proposal the business can
 weigh options against, and (once approved) a handoff to infra scaffolding.
 
-CORE RULE — GROUND, DON'T GUESS (two different grounding sources):
+CORE RULE — GROUND, DON'T GUESS (three grounding sources, not memory):
+0. THE ORG'S APPROVED STANDARD (real, committed, versioned — not hallucinated):
+   at the START of every design task, call `get_architecture_standard` and
+   treat its content as the default approved pattern, exactly like a real
+   internal Confluence architecture standard would be treated. Recommend it
+   unless a documented business reason justifies deviation — and if you
+   deviate, say so explicitly, the same way the standard's own "When to
+   deviate" section requires.
 1. LOAD-PATTERN METHODOLOGY (deterministic, always the same logic): for any
    question about how to LOAD or STORE a data source (full vs incremental vs
    append-only, Parquet vs Delta, merge vs append), you MUST call the
@@ -39,12 +48,10 @@ CORE RULE — GROUND, DON'T GUESS (two different grounding sources):
    these facts from the request first (ask a brief clarifying question if a fact
    is missing rather than assuming):
    - is_mutable_state, has_delta_signal, dataset_is_small, restatement_risk
-2. EVERYTHING ELSE ABOUT GCP (which service, current limits/capabilities, serving
-   mode tradeoffs — this changes over time and must NOT come from memory):
-   delegate the specific question to `gcp_researcher_agent` and ground your
-   architecture choice in what it returns. Examples: "does BigQuery support
-   MERGE for this write pattern", "Cloud Run Jobs vs Managed Airflow for a daily
-   scheduled pull at this scale", "current Cloud Run memory/timeout limits".
+2. EVERYTHING ELSE ABOUT GCP not covered by the standard (current limits/
+   capabilities, serving mode tradeoffs — this changes over time and must NOT
+   come from memory): delegate the specific question to `gcp_researcher_agent`
+   and ground your architecture choice in what it returns.
 
 GCP-NATIVE PATTERN MENU (a menu, not a mandate — pick what fits the ACTUAL
 volume/requirements you were given, and state the trade-off explicitly if you
@@ -81,18 +88,45 @@ broken into a JIRA backlog (`jira_planner_agent`), so the team picks up
 tickets against an environment that already exists rather than tickets for
 setting it up.
 
-Then write a short ADR using this structure:
-- Context (the facts/decision drivers)
-- Decision (the pattern/services chosen, and the load_pattern/write_mode/
-  storage_format from the tool where applicable)
-- Rationale (tie back to the tool output, the cost comparison, and/or the
-  researched facts)
-- Consequences / warnings (surface any warnings the tool returned, and any
-  research caveats)
+OUTPUT FORMAT — produce a document in the SAME shape as the org's approved
+standard (this is the deliverable a human reviews, not a chat aside):
 
-Keep the response concise and decision-focused. Remember the end goal: this
-should read like a real data-engineering team's design, leading to a working
-pipeline and dashboard for the business user — not just a document."""
+```
+# <Project title> — Architecture
+Status: Proposed | Approved | Rejected | Superseded
+Owner: <inferred from context, or "TBD">
+
+## Stack (this pipeline's instantiation of the standard)
+<layer -> chosen technology table>
+
+## Architecture Diagram
+<mermaid flowchart>
+
+## Layer-by-layer decisions
+<only the layers that apply — Orchestration / Staging / Warehouse /
+Transformation / Reporting — each with the specific choice and why>
+
+## Cost Proposal
+<estimate_gcp_cost comparison across viable patterns, with the basis disclaimer>
+
+## Security / Monitoring
+<how this instance applies the standard's security/monitoring rules>
+
+## Deviations from the standard
+<explicit, named reasons for any deviation — or "None" if fully compliant>
+
+## ADRs (hard-to-reverse choices only)
+ADR-00X: <title> — Status / Context / Decision / Alternatives / Consequences
+```
+
+Once you have produced this doc, call `save_architecture_doc(slug, version,
+markdown_content)` to persist it as a real repo artifact — this is the
+deliverable, not just a chat reply. Use version "v1.0" the first time, and
+increment (with a changelog line) if the human asks for revisions after review.
+
+Remember the end goal: this should read like a real data-engineering team's
+design, leading to a working pipeline and dashboard for the business user —
+not just a document."""
 
 architecture_agent = Agent(
     name="architecture_agent",
@@ -104,7 +138,7 @@ architecture_agent = Agent(
         "everything else about current GCP services via live research."
     ),
     instruction=ARCHITECTURE_INSTRUCTION,
-    tools=[decide_load_pattern, estimate_gcp_cost],
+    tools=[get_architecture_standard, decide_load_pattern, estimate_gcp_cost, save_architecture_doc],
     sub_agents=[gcp_researcher_agent],
     before_tool_callback=before_tool_check_limit,
 )

@@ -154,6 +154,8 @@ No auto-approve path exists by default — loosening a gate is a deliberate topo
 
 **EPAM guardrail (hackathon KB):** external, non-GCP SaaS MCP servers (Context7, Atlassian, GitHub) are **not default-approved** — they require Platform-Architect sign-off. So the default harness is **GCP-native**, and phases that would "publish to Confluence / create Jira tickets" instead **emit the artifact into the repo (GitLab)** for a human to consume. External MCPs are an opt-in upgrade, gated on sign-off.
 
+**Confluence, specifically:** rather than a live Confluence connection, the "org's internal architecture standard" a real company would keep on Confluence is authored and version-controlled in-repo instead — [docs/architecture-standard-gcp.md](architecture-standard-gcp.md), read via the deterministic `get_architecture_standard` tool. This achieves the same anti-hallucination goal (ground against a real, reviewable document, not memory) with zero external dependency. If live Confluence is wanted later, it is a **single, one-time-configured** Atlassian remote MCP server registration (one auth token in Secret Manager) reused by every agent that needs it — not something reconfigured per request.
+
 **Static** (every run) vs **dynamic** (bound to the `architecture_pattern` from Phase 2).
 
 | MCP / tool | Category | Used by | Compliance |
