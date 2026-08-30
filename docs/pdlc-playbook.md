@@ -118,14 +118,16 @@ Everything traces back to a specific Phase-1 answer. "We chose Delta because Pha
 
 ### 2.1 Company patterns are a menu, not a mandate
 
-| Pattern | Extraction | Storage | Format | Serving | Fits when… |
-|---|---|---|---|---|---|
-| A — Enterprise DW | Airflow | S3 → Snowflake | — | Snowflake + dbt | Many pipelines, shared modeling layer exists |
-| B — Lakehouse (Glue) | Glue + PySpark | Medallion in S3 | Parquet | S3 (Athena/Spectrum) | Big volumes, existing Glue estate, append-mostly |
-| C — Lakehouse (EMR) | EMR + PySpark | Medallion in S3 | Delta | S3 / Databricks SQL | Volumes need Spark **and** merges required |
-| D — Lightweight | Scheduled script (Cloud Run job / Function / cron) + Python | Single table or small Delta | Delta or plain table | Direct BI import | Small volume (10s–1000s rows/day), single source |
+| Pattern | GCP-native stack | Fits when… |
+|---|---|---|
+| D — Lightweight | Cloud Run Jobs + Cloud Scheduler + BigQuery | Small volume (10s–1000s rows/day), single source — most requests land here |
+| B — Lakehouse (Dataflow) | Dataflow (Apache Beam) + GCS (Parquet) + BigLake/BigQuery ext tables | Big volumes, append-mostly, no merges needed |
+| C — Lakehouse (Dataproc) | Dataproc (managed Spark) + GCS or BigQuery | Volumes genuinely need Spark-scale transforms |
+| A — Enterprise DW | Managed Service for Apache Airflow (MSAA/Cloud Composer) + Dataform (or dbt-core) + BigQuery | Many pipelines already share a modeling layer/orchestrator |
 
-A 10-ticker daily puller is Pattern-D scale. Using a heavier pattern for platform consistency is legitimate — but state it as a trade-off in the ADR, don't default into it.
+A 10-ticker daily puller is Pattern-D scale. Using a heavier pattern for platform consistency is legitimate — but state it as a trade-off in the ADR, don't default into it. (Encoded deterministically for cost comparison in [`pdlc_agent/tools/cost_estimate.py`](../pdlc_agent/tools/cost_estimate.py) — a lead engineer proposes options with numbers, not just technical preference.)
+
+**GCP-specific insight — don't miss this:** BigQuery natively supports MERGE/UPSERT. On GCP you often do NOT need a separate Delta/Iceberg lakehouse layer just for update-in-place semantics — landing data directly in BigQuery gives you that for free. Reserve the Dataflow/Dataproc lakehouse patterns for volumes that genuinely need Spark/Beam-scale processing, not merge support alone.
 
 ### 2.2 Decision tree — load pattern (highest-leverage HLD decision)
 
@@ -172,7 +174,7 @@ Compressed dataset fits Import limits AND daily refresh acceptable?
 - **Security:** API key in Secret Manager (never in repo), least-privilege IAM, scoped read-only warehouse access.
 - **Logging & monitoring:** structured logs per run (rows pulled/loaded, duration), freshness/health check, failure alert route.
 - **Retry & idempotency:** exponential backoff on throttling; MERGE writes so re-running a failed day doesn't duplicate; safe re-run after mid-job failure.
-- **Cost estimate:** rough monthly number (API + compute + storage). Write it down even when small — it's what makes the ADR defensible.
+- **Cost estimate:** rough monthly number (API + compute + storage). Write it down even when small — it's what makes the ADR defensible. (Deterministic ROM calculator: [`pdlc_agent/tools/cost_estimate.py`](../pdlc_agent/tools/cost_estimate.py) — always presented as an estimate, verify precisely via Cloud Billing.)
 
 ### 2.7 ADR template (one per significant, hard-to-reverse choice)
 
@@ -216,6 +218,8 @@ A real checklist, not a rubber stamp:
 - [ ] Deviation from standard pattern has a stated reason
 
 Outcome: **approve**, **reject**, or **approve with conditions**. Rejected/conditional → back to Phase 2; the ADR log records what changed.
+
+Once approved, the design is ready for two parallel next steps: the JIRA breakdown (Phase 4) and Infrastructure-as-Code scaffolding — the design should lead to something a developer can actually run, not just a document. (See [`pdlc_agent/tools/iac_generator.py`](../pdlc_agent/tools/iac_generator.py) — generates the infra it can verify the syntax for, and honestly flags what still needs a human/researcher to confirm rather than guessing it.)
 
 ---
 

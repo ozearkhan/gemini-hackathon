@@ -1,6 +1,6 @@
 {
   "name": "Agentic PDLC Assistant",
-  "description": "Automates the data-engineering Project Development Lifecycle (PDLC): turns a raw business request into lifecycle artifacts (triage note, versioned Requirement Analysis with gap/blocker analysis, HLD/ADR, JIRA breakdown) via a coordinator that routes to phase specialists. Specialists ground factual claims (vendor APIs, current GCP service capabilities) in live Google Search research, and the one genuinely-fixed methodology decision (load pattern) in a deterministic decision tree.",
+  "description": "Automates the data-engineering Project Development Lifecycle (PDLC) end to end — as if a real GCP data-engineering team built it: turns a raw business request into a triage note, a versioned Requirement Analysis with gap/blocker analysis, a GCP-native HLD with a cost proposal and ADRs, an approved-design JIRA breakdown, and Infrastructure-as-Code scaffolding, via a coordinator that routes to phase specialists. Specialists ground factual claims (vendor APIs, current GCP service capabilities) in live Google Search research, costs in a labeled rough-estimate calculator, and the one genuinely-fixed methodology decision (load pattern) in a deterministic decision tree.",
   "url": "https://agenti-1711-pdlc-gtlpbazura-uc.a.run.app/a2a/pdlc_agent",
   "provider": {
     "organization": "EPAM Systems",
@@ -18,12 +18,24 @@
     {
       "id": "architecture_hld",
       "name": "Architecture & HLD Decisions",
-      "description": "Produces High-Level Design decisions and Architecture Decision Records for data pipelines like a GCP data-engineering team — the load-pattern methodology is grounded in a deterministic decision tree, and current GCP service capabilities/limits are grounded via live research rather than a fixed template.",
-      "tags": ["data-engineering", "architecture", "adr", "pdlc", "gemini-enterprise", "gcp"],
+      "description": "Produces GCP-native High-Level Design decisions, cost proposals, and Architecture Decision Records like a GCP data-engineering team — the load-pattern methodology is grounded in a deterministic decision tree, costs in a labeled rough-estimate calculator, and current GCP service capabilities/limits via live research rather than a fixed template.",
+      "tags": ["data-engineering", "architecture", "adr", "cost", "pdlc", "gemini-enterprise", "gcp"],
       "examples": [
         "How should I load a daily stock-price feed for 10 competitor tickers?",
         "Full, incremental, or append-only for an immutable fact with restatement risk?",
-        "Which GCP services fit a small daily batch pipeline with corporate-action restatements?"
+        "Compare the cost of a lightweight vs enterprise-Airflow pattern for this volume."
+      ],
+      "inputModes": ["text/plain"],
+      "outputModes": ["text/plain"]
+    },
+    {
+      "id": "iac_scaffolding",
+      "name": "Infrastructure as Code",
+      "description": "Once an architecture is approved, scaffolds the infra prerequisites (BigQuery, Secret Manager) as real Terraform files in the repo — honestly flagging anything that needs current-syntax verification rather than guessing it — so the design leads to something a developer can actually run.",
+      "tags": ["data-engineering", "iac", "terraform", "pdlc", "gcp"],
+      "examples": [
+        "The architecture is approved — scaffold the infra for it.",
+        "Generate Terraform for the BigQuery table and secret this pipeline needs."
       ],
       "inputModes": ["text/plain"],
       "outputModes": ["text/plain"]

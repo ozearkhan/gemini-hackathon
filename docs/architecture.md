@@ -193,39 +193,43 @@ All bound via ADK's MCP toolset. **Binding an MCP server *into Gemini Enterprise
 | # | Slice | Status |
 |---|---|---|
 | 1 | Coordinator + one phase specialist (`architecture_agent`) grounded in a deterministic tool (`decide_load_pattern`); tool-call guardrail; unit tests | ✅ **done** |
-| 2 | `intake_triage_agent` (Phase 0) + `requirements_analyst` (Phase 1) with a deterministic `source_feasibility` tool (verified API facts) | ⏭️ next |
-| 3 | Doc-gate (§3): bind Context7 / Dev-Knowledge MCP; grounding guard callback; prove doc-fetch precedes any capability claim | ⏭️ |
-| 4 | HITL Gate 1 (requirement sign-off) via the chat turn; then Gate 2 | ⏭️ |
-| 5 | `jira_planner` (Phase 4) with traceability check (every task cites a requirement/ADR id) | ⏭️ |
-| 6 | Observability (Cloud Trace) + `agents-cli eval` dataset incl. the grounding metric | ⏭️ |
-| 7 | Terraform `infra/` + Secret Manager + Cloud Run/Agent Runtime deploy (remote) | ⏭️ |
-| 8 | Raise the Gemini Enterprise binding ticket; end-to-end pilot on the stock-tracker request | ⏭️ |
+| 2 | `intake_triage_agent` (Phase 0) + `requirements_analyst_agent` (Phase 1) | ✅ **done** |
+| 2.5 | Real research: `google_search`-grounded `researcher_agent` factory replaces hardcoded facts; reasoning-tier model for Phase 1/2 | ✅ **done** |
+| 3 | GCP-native pattern menu, `estimate_gcp_cost` cost proposals, `jira_planner_agent` (Phase 4, traceability-enforced), `iac_agent` (Phase 5, Terraform scaffolding, approval-gated) | ✅ **done** |
+| 4 | Durable HITL gates (graph `Workflow` `interrupt()`, not just chat-turn) for requirement sign-off and architecture review | ⏭️ next |
+| 5 | Observability (Cloud Trace) + `agents-cli eval` dataset incl. a grounding metric | ⏭️ |
+| 6 | Terraform `infra/` for the agent's OWN deployment + Secret Manager (distinct from the IaC the agent *generates* for user pipelines) | ⏭️ |
+| 7 | Raise the Gemini Enterprise binding ticket; end-to-end pilot on the stock-tracker request | ⏭️ |
 
 Keep both human gates strict initially; loosen only after traces show trustworthy behavior.
 
 ---
 
-## 10. Repo layout (target)
+## 10. Repo layout (current)
 
 ```
 pdlc_agent/                     # ADK package (kept for deploy.sh / agent.json compatibility)
-├── agent.py                    # root_agent = PDLC Coordinator  ✅
-├── config.py                   # env-driven models + limits      ✅
-├── callbacks.py                # tool-call ceiling; doc-gate guard ✅/⏭️
+├── agent.py                    # root_agent = PDLC Coordinator, routes to 5 specialists  ✅
+├── config.py                   # env-driven models (fast/model/reasoning) + limits        ✅
+├── callbacks.py                # tool-call ceiling guardrail                              ✅
 ├── agents/                     # phase specialists
-│   ├── architecture_agent.py   # Phase 2                          ✅
-│   ├── intake_triage_agent.py  # Phase 0                          ⏭️
-│   ├── requirements_analyst.py # Phase 1                          ⏭️
-│   └── jira_planner.py         # Phase 4                          ⏭️
+│   ├── intake_triage_agent.py       # Phase 0                                       ✅
+│   ├── requirements_analyst_agent.py# Phase 1, delegates facts to a researcher      ✅
+│   ├── architecture_agent.py        # Phase 2, GCP menu + cost + ADR + researcher    ✅
+│   ├── jira_planner_agent.py        # Phase 4, traceability-enforced                 ✅
+│   ├── iac_agent.py                 # Phase 5, approval-gated Terraform scaffolding  ✅
+│   └── researcher_agent.py          # build_researcher_agent() factory, google_search✅
 ├── tools/                      # deterministic FunctionTools
-│   ├── load_pattern.py         # Phase 2.2 decision tree          ✅
-│   ├── feasibility.py          # Phase 1.3 source facts           ⏭️
-│   └── templates.py            # Requirement doc / ADR / Mermaid / JIRA renderers ⏭️
-├── mcp_config.py               # static + dynamic MCP binding (§6) ⏭️
+│   ├── load_pattern.py          # Phase 2.2 decision tree                          ✅
+│   ├── cost_estimate.py         # Phase 2.6 rough-order-of-magnitude GCP cost       ✅
+│   ├── traceability.py          # Phase 4 requirement/ADR traceability check        ✅
+│   ├── requirement_doc.py       # Phase 1.6 versioned doc persistence (repo artifact)✅
+│   └── iac_generator.py         # Phase 5 Terraform skeleton (honest, flags gaps)   ✅
 ├── agent.json / requirements.txt
-tests/unit/                     # deterministic tool tests         ✅
-tests/eval/                     # agents-cli eval datasets (§7)     ⏭️
-infra/                          # Terraform (§8)                    ⏭️
+tests/unit/                     # deterministic tool tests — 24 passing               ✅
+tests/eval/                     # agents-cli eval datasets (§7)                        ⏭️
+infra/                          # Terraform for the AGENT's own deployment (§6)         ⏭️
+infra/generated/<slug>/         # Terraform the agent GENERATES for a user's pipeline  ✅ (tool exists)
 docs/                           # this doc + playbook + deployment
 ```
 
