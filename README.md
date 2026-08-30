@@ -6,7 +6,7 @@
 
 The **Agentic PDLC Assistant** automates the data-engineering **Project Development Lifecycle (PDLC)** end to end — as if a real GCP data-engineering team took a plain-language business request (e.g. *"build a daily competitor stock tracker"*) all the way to a deliverable pipeline. It produces the concrete artifacts a senior team would: a **triage note**, a versioned **Requirement Analysis with gap/blocker detection**, a **GCP-native High-Level Design with a cost proposal** and **Architecture Decision Records**, an **approved-design JIRA breakdown**, and **Infrastructure-as-Code scaffolding** — not just documents, a path to something a developer can actually run.
 
-It is a **multi-agent system** on Google's **Agent Development Kit (ADK)**: a lightweight coordinator routes each request to a narrow **phase specialist**. Specialists ground every *factual* claim (vendor/API capabilities, current GCP service limits) in **live Google Search research** via a dedicated researcher sub-agent — never from memory — while the one genuinely-fixed methodology decision (the load-pattern decision tree) stays a **deterministic tool**. Costs are estimated with a labeled rough-order-of-magnitude calculator, framed like a lead engineer proposing options to the business. It is deployed to **Cloud Run (A2A)** and registered into **Gemini Enterprise**.
+It is a **multi-agent system** on Google's **Agent Development Kit (ADK)**: a lightweight coordinator routes each request to a narrow **phase specialist**. Specialists ground every *factual* claim in **live research** — never from memory: third-party vendor/API facts via a dedicated `google_search`-grounded researcher sub-agent, and Google's own current docs (e.g. exact GCP/Terraform syntax) via the **Google Developer Knowledge MCP server** — while the one genuinely-fixed methodology decision (the load-pattern decision tree) stays a **deterministic tool**. Costs are estimated with a labeled rough-order-of-magnitude calculator, framed like a lead engineer proposing options to the business. It is deployed to **Cloud Run (A2A)**, scaffolded and deployed via Google's **`agents-cli`** golden path, and registered into **Gemini Enterprise**.
 
 **Business value:** compresses days of senior-engineer discovery, design, and cost justification into minutes, while producing a defensible **paper trail** — every choice traces back to a requirement, a researched fact, or an ADR. That combination (speed *and* auditability *and* a runnable deliverable) is what makes it enterprise-ready rather than a demo.
 
@@ -35,20 +35,20 @@ flowchart TB
 ## 3. Tech Stack & Dependencies
 
 - **Language:** Python 3.12
-- **Framework:** Google ADK 2.8 (`google-adk[a2a]`), A2A protocol, `sse-starlette`
-- **Toolchain:** `agents-cli`, `uv`, `pytest`
-- **GCP:** Cloud Run, Vertex AI (Gemini), Artifact Registry, Cloud Build, Secret Manager, Cloud Trace
-- **Grounding (planned, GCP-native):** Google Developer Knowledge MCP + Vertex AI Search
+- **Framework:** Google ADK 2.6-2.x (`google-adk[gcp,otel-gcp,mcp]`), A2A protocol, FastAPI
+- **Toolchain:** `agents-cli` (scaffold/infra/deploy/eval), `uv`, `pytest`, Terraform, Docker
+- **GCP:** Cloud Run, Vertex AI (Gemini), Artifact Registry, Secret Manager, Cloud Trace, BigQuery (telemetry + Agent Analytics), GCS
+- **Grounding (GCP-native, real — not planned):** ADK `google_search` (third-party vendor/API research) + Google Developer Knowledge MCP (Google's own docs, wired into architecture/iac/jira agents)
 
 ## 4. Environment Variables
 
 | Variable | Description | Required | Default |
 | :--- | :--- | :--- | :--- |
 | `GOOGLE_CLOUD_PROJECT` | GCP sandbox project ID (Layer 2) | Yes | `hl2-gcpp-ccoe-ge-h-agenti-1711` |
-| `GOOGLE_CLOUD_LOCATION` | GCP region | No | `us-central1` |
-| `CLOUD_RUN_SERVICE_NAME` | Cloud Run service name | No | `agenti-1711-pdlc` |
-| `PDLC_FAST_MODEL` | Model for coordinator routing | No | `gemini-2.5-flash` |
-| `PDLC_MODEL` | Model for JIRA/IaC specialists | No | `gemini-2.5-flash` |
+| `GOOGLE_CLOUD_LOCATION` | Vertex AI model endpoint location — must be `global` for current models, NOT a region | No | `global` |
+| `CLOUD_RUN_SERVICE_NAME` | Cloud Run service name | No | `agentic-pdlc` |
+| `PDLC_FAST_MODEL` | Model for coordinator routing | No | `gemini-3.7-flash` |
+| `PDLC_MODEL` | Model for JIRA/IaC specialists | No | `gemini-3.7-flash` |
 | `PDLC_REASONING_MODEL` | Model for research + gap analysis (Phase 1) and GCP design reasoning (Phase 2) | No | `gemini-2.5-pro` |
 | `PDLC_MAX_TOOL_CALLS` | Per-turn tool-call ceiling (guardrail) | No | `10` |
 
@@ -57,10 +57,11 @@ No secrets live in the repo — `.env` is git-ignored; production secrets use **
 ## 5. Local Execution & Testing
 
 ```bash
-python -m venv .venv && source .venv/Scripts/activate   # bash/Linux: .venv/bin/activate
-pip install -r requirements-dev.txt -r pdlc_agent/requirements.txt
-python -m pytest                        # deterministic tool tests (fast, offline)
-source .env && ./deploy.sh local        # ADK dev UI at http://localhost:8000 (needs GCP auth)
+uv sync                                 # installs deps incl. dev/eval groups
+uv run pytest tests/unit -q             # deterministic tool + guardrail tests (fast, offline)
+
+# needs Vertex AI ADC (gcloud auth application-default login) + GOOGLE_CLOUD_LOCATION=global
+agents-cli playground                   # ADK dev UI — local in-process agent
 ```
 
 
@@ -69,10 +70,12 @@ source .env && ./deploy.sh local        # ADK dev UI at http://localhost:8000 (n
 Full runbook (first-time bootstrap → connectivity → IAM → deploy → registration): **[docs/deployment.md](docs/deployment.md)**.
 
 ```bash
-source .env && ./deploy.sh cloud_run    # Cloud Run + A2A, epam-policy-compliant (--no-allow-unauthenticated)
+agents-cli infra single-project                              # Terraform: SA, IAM, Cloud Trace/BigQuery telemetry, Cloud Run shell
+agents-cli deploy --project [PROJECT_ID] --region us-central1 \
+  --service-account agentic-pdlc-app@[PROJECT_ID].iam.gserviceaccount.com   # deploys real code, --no-allow-unauthenticated
 ```
 
-The script deploys the container, then grants the Layer-1 Gemini Enterprise Discovery Engine SA `roles/run.invoker`. Registering the A2A endpoint into the shared Gemini Enterprise app is **team-gated** (Layer 1) — raise a support ticket with the deployed `pdlc_agent/agent.json` + service URL.
+Grant the Layer-1 Gemini Enterprise Discovery Engine SA `roles/run.invoker` on the deployed service, then raise a support ticket (MS Teams "Gemini Enterprise Hackathon Support") with the deployed `pdlc_agent/agent.json` + service URL — registration into the shared Gemini Enterprise app is **team-gated** (Layer 1), we cannot self-register.
 
 ## 7. Testing & Verification (UAT)
 
@@ -91,15 +94,19 @@ Testing split follows the ADK guidance: **deterministic tools → `pytest`** (`t
 pdlc_agent/              ADK package — root_agent = pdlc_coordinator
 ├── agent.py             coordinator (routes to 5 phase specialists)
 ├── config.py            env-driven models (fast/model/reasoning) + guardrail limits
-├── callbacks.py         tool-call ceiling guardrail
+├── callbacks.py         tool-call ceiling + approval/grounding structural guards
+├── fast_api_app.py      FastAPI app (ADK web UI + A2A routes), agents-cli deploy entrypoint
+├── app_utils/           shared session/artifact services, A2A route wiring
 ├── agents/              intake_triage · requirements_analyst · architecture · jira_planner · iac · researcher
-├── tools/               load_pattern · cost_estimate · traceability · requirement_doc · iac_generator
-├── agent.json           A2A agent card (5 skills)
-└── requirements.txt     runtime deps (installed into the container)
-tests/unit/              deterministic tool + guardrail tests — 24 passing
-docs/                    playbook · architecture · deployment
+├── tools/               load_pattern · cost_estimate · traceability · requirement_doc · iac_generator · dev_knowledge (MCP)
+└── agent.json           A2A agent card (5 skills)
+deployment/terraform/    agents-cli-generated infra (single-project: SA, IAM, telemetry, Cloud Run)
+tests/unit/              deterministic tool + guardrail tests — 38 passing
+tests/eval/              agents-cli eval harness (dataset + LLM-as-judge config)
+tests/integration/       scaffold-generated FastAPI/A2A smoke tests (need live Vertex creds)
+docs/                    playbook · architecture · deployment · architecture-standard-gcp
 .github/skills/          vendored Google ADK + Cloud skills (agents-cli golden path)
-deploy.sh                local | cloud_run | agent_engine
+Dockerfile, pyproject.toml, agents-cli-manifest.yaml    agents-cli scaffold
 ```
 
 ## License / IP
