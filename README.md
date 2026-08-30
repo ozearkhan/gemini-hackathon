@@ -47,8 +47,8 @@ flowchart TB
 | `GOOGLE_CLOUD_PROJECT` | GCP sandbox project ID (Layer 2) | Yes | `hl2-gcpp-ccoe-ge-h-agenti-1711` |
 | `GOOGLE_CLOUD_LOCATION` | Vertex AI model endpoint location — must be `global` for current models, NOT a region | No | `global` |
 | `CLOUD_RUN_SERVICE_NAME` | Cloud Run service name | No | `agentic-pdlc` |
-| `PDLC_FAST_MODEL` | Model for coordinator routing | No | `gemini-3.7-flash` |
-| `PDLC_MODEL` | Model for JIRA/IaC specialists | No | `gemini-3.7-flash` |
+| `PDLC_FAST_MODEL` | Model for coordinator routing | No | `gemini-2.5-pro` |
+| `PDLC_MODEL` | Model for JIRA/IaC specialists | No | `gemini-2.5-pro` |
 | `PDLC_REASONING_MODEL` | Model for research + gap analysis (Phase 1) and GCP design reasoning (Phase 2) | No | `gemini-2.5-pro` |
 | `PDLC_MAX_TOOL_CALLS` | Per-turn tool-call ceiling (guardrail) | No | `10` |
 

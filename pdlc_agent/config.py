@@ -13,14 +13,15 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class Settings:
-    # Coordinator's routing model — cheap/fast GA model, available directly
-    # in us-central1 (no "global"-only preview-model quirks).
+    # Coordinator's routing model — gemini-3.7-flash was erroring on
+    # GOOGLE_CLOUD_LOCATION=us-central1; gemini-2.5-pro is confirmed working
+    # everywhere else in this project, so used consistently for all roles.
     fast_model: str = field(
-        default_factory=lambda: os.environ.get("PDLC_FAST_MODEL", "gemini-3.7-flash")
+        default_factory=lambda: os.environ.get("PDLC_FAST_MODEL", "gemini-2.5-pro")
     )
     # Model for reasoning-heavier phase subagents.
     model: str = field(
-        default_factory=lambda: os.environ.get("PDLC_MODEL", "gemini-3.7-flash")
+        default_factory=lambda: os.environ.get("PDLC_MODEL", "gemini-2.5-pro")
     )
     # Model for research + gap analysis (Phase 1) and GCP design reasoning (Phase 2).
     # Best available GA (non-preview) reasoning-tier model, confirmed available
